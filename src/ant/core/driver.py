@@ -189,6 +189,14 @@ class USB2Driver(Driver):
 
         if dev is None:
             raise DriverError('Could not open device (not found)')
+
+        # make sure the kernel driver is not active
+        if dev.is_kernel_driver_active(0):
+            try:
+                dev.detach_kernel_driver(0)
+            except usb.core.USBError as e:
+                sys.exit("could not detach kernel driver: {}".format(e))
+
         dev.set_configuration()
         cfg = dev.get_active_configuration()
         interface_number = cfg[(0,0)].bInterfaceNumber

@@ -27,13 +27,15 @@ import os
 
 from setuptools import setup, find_packages
 
+baseDir = os.path.dirname(__file__)
+os.chdir(baseDir)
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    return open(os.path.join(baseDir, fname)).read()
 
 setup(
     name='ant',
-    version='develop',
+    version='0.1.1',
     url='http://www.github.com/mvillalba/python-ant',
     license='MIT',
     description='Python implementation of the ANT, ANT+, and ANT-FS ' \

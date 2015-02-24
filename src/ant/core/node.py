@@ -157,8 +157,8 @@ class Node(event.EventCallback):
         if not self.driver.isOpen():
             self.driver.open()
 
-        self.reset()
         self.evm.start()
+        self.reset()
         self.running = True
         self.init()
 
@@ -173,9 +173,8 @@ class Node(event.EventCallback):
         self.driver.close()
 
     def reset(self):
-        msg = message.SystemResetMessage()
-        self.driver.write(msg.encode())
-        time.sleep(1)
+        self.driver.write(message.SystemResetMessage().encode())
+        caps = self.evm.waitForMessage(message.StartupMessage)
 
     def init(self):
         if not self.running:

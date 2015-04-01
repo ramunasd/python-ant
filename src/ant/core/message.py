@@ -30,6 +30,10 @@ from ant.core.constants import *
 
 
 class Message(object):
+    INCOMPLETE = 'incomplete'
+    CORRUPTED = 'corrupted'
+    MALFORMED = 'malformed'
+    
     def __init__(self, type_=0x00, payload=''):
         self.setType(type_)
         self.setPayload(payload)
@@ -39,8 +43,8 @@ class Message(object):
 
     def setPayload(self, payload):
         if len(payload) > 9:
-            raise MessageError(
-                  'Could not set payload (payload too long).')
+            raise MessageError('Could not set payload (payload too long).',
+                               internal=Message.MALFORMED)
 
         self.payload = []
         for byte in payload:
@@ -51,7 +55,8 @@ class Message(object):
 
     def setType(self, type_):
         if (type_ > 0xFF) or (type_ < 0x00):
-            raise MessageError('Could not set type (type out of range).')
+            raise MessageError('Could not set type (type out of range).',
+                               internal=Message.CORRUPTED)
 
         self.type_ = type_
 
@@ -81,23 +86,27 @@ class Message(object):
 
     def decode(self, raw):
         if len(raw) < 5:
-            raise MessageError('Could not decode (message is incomplete).')
+            raise MessageError('Could not decode (message is incomplete).',
+                               internal=Message.INCOMPLETE)
 
         sync, length, type_ = struct.unpack('BBB', raw[:3])
 
         if sync != MESSAGE_TX_SYNC:
-            raise MessageError('Could not decode (expected TX sync).')
+            raise MessageError('Could not decode (expected TX sync).',
+                               internal=Message.CORRUPTED)
         if length > 9:
-            raise MessageError('Could not decode (payload too long).')
+            raise MessageError('Could not decode (payload too long).',
+                               internal=Message.MALFORMED)
         if len(raw) < (length + 4):
-            raise MessageError('Could not decode (message is incomplete).')
+            raise MessageError('Could not decode (message is incomplete).',
+                               internal=Message.INCOMPLETE)
 
         self.setType(type_)
         self.setPayload(raw[3:length + 3])
 
         if self.getChecksum() != ord(raw[length + 3]):
             raise MessageError('Could not decode (bad checksum).',
-                               internal='CHECKSUM')
+                               internal=Message.CORRUPTED)
 
         return self.getSize()
 

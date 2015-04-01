@@ -42,19 +42,22 @@ from ant.core.exceptions import MessageError
 def ProcessBuffer(buffer_):
     messages = []
 
-    while True:
-        hf = Message()
+    while len(buffer_) > 0:
         try:
-            msg = hf.getHandler(buffer_)
-            buffer_ = buffer_[len(msg.getPayload()) + 4:]
+            msg = Message().getHandler(buffer_)
             messages.append(msg)
-        except MessageError, e:
-            if e.internal == "CHECKSUM":
-                buffer_ = buffer_[ord(buffer_[1]) + 4:]
+            buffer_ = buffer_[msg.getSize():]
+        except MessageError as err:
+            if err.internal is not Message.INCOMPLETE:
+                i, length = 1, len(buffer_)
+                # move to the next SYNC byte
+                while i < length and ord(buffer_[i]) != MESSAGE_TX_SYNC:
+                    i += 1
+                buffer_ = buffer_[i:]
             else:
                 break
 
-    return (buffer_, messages,)
+    return (buffer_, messages)
 
 
 def EventPump(evm):

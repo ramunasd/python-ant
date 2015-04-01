@@ -157,6 +157,8 @@ class Message(object):
             msg = CapabilitiesMessage()
         elif self.type_ == MESSAGE_SERIAL_NUMBER:
             msg = SerialNumberMessage()
+        elif self.type_ == MESSAGE_STARTUP:
+            msg = StartupMessage()
         else:
             raise MessageError('Could not find message handler ' \
                                '(unknown message type).')
@@ -438,6 +440,21 @@ class VersionMessage(Message):
                                '(expected 9 bytes).')
 
         self.setPayload(version)
+
+
+class StartupMessage(Message):
+    def __init__(self, startupMessage=0x00):
+        Message.__init__(self, type_=MESSAGE_STARTUP, payload='\x00')
+        
+    def getStartupMessage(self):
+        return self.payload[0]
+        
+    def setStartupMessage(self, startupMessage):
+        if (startupMessage > 0xFF) or (startupMessage < 0x00):
+            raise MessageError('Could not set start-up message ' \
+                                   '(out of range).')
+
+        self.payload[0] = chr(startupMessage)
 
 
 class CapabilitiesMessage(Message):

@@ -45,10 +45,10 @@ class MessageTest(unittest.TestCase):
         self.assertEquals(self.message.getType(), 0x23)
 
     def test_getChecksum(self):
-        self.message = Message(type_=MESSAGE_SYSTEM_RESET, payload='\x00')
+        self.message = Message(type_=MESSAGE_SYSTEM_RESET, payload=bytearray(1))
         self.assertEquals(self.message.getChecksum(), 0xEF)
         self.message = Message(type_=MESSAGE_CHANNEL_ASSIGN,
-                               payload='\x00' * 3)
+                               payload=bytearray(3))
         self.assertEquals(self.message.getChecksum(), 0xE5)
 
     def test_getSize(self):
@@ -57,7 +57,7 @@ class MessageTest(unittest.TestCase):
 
     def test_encode(self):
         self.message = Message(type_=MESSAGE_CHANNEL_ASSIGN,
-                               payload='\x00' * 3)
+                               payload=bytearray(3))
         self.assertEqual(self.message.encode(),
                          '\xA4\x03\x42\x00\x00\x00\xE5')
 

@@ -22,6 +22,7 @@
 # IN THE SOFTWARE.
 #
 ##############################################################################
+# pylint: disable=missing-docstring,invalid-name
 
 import struct
 
@@ -432,7 +433,7 @@ class VersionMessage(Message):
         return self.getPayload()
 
     def setVersion(self, version):
-        if (len(version) != 9):
+        if len(version) != 9:
             raise MessageError('Could not set ANT version ' \
                                '(expected 9 bytes).')
 
@@ -527,7 +528,7 @@ class SerialNumberMessage(Message):
         return self.getPayload()
 
     def setSerialNumber(self, serial):
-        if (len(serial) != 4):
+        if len(serial) != 4:
             raise MessageError('Could not set serial number ' \
                                '(expected 4 bytes).')
 

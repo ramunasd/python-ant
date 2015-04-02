@@ -278,6 +278,7 @@ class ChannelTXPowerMessage(ChannelMessage):
     def __init__(self, number=0x00, power=0x00):
         ChannelMessage.__init__(self, type_=MESSAGE_CHANNEL_TX_POWER,
                                 payload='\x00', number=number)
+        self.setPower(power)
 
     def getPower(self):
         return ord(self.payload[1])
@@ -443,6 +444,7 @@ class VersionMessage(Message):
 class StartupMessage(Message):
     def __init__(self, startupMessage=0x00):
         Message.__init__(self, type_=MESSAGE_STARTUP, payload='\x00')
+        self.setStartupMessage(startupMessage)
         
     def getStartupMessage(self):
         return self.payload[0]

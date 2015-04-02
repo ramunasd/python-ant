@@ -61,14 +61,11 @@ class Message(object):
         self.type_ = type_
 
     def getChecksum(self):
-        data = chr(len(self.getPayload()))
-        data += chr(self.getType())
-        data += self.getPayload()
-
         checksum = MESSAGE_TX_SYNC
-        for byte in data:
-            checksum = (checksum ^ ord(byte)) % 0xFF
-
+        checksum ^= len(self.payload)
+        checksum ^= self.type_
+        for byte in self.payload:
+            checksum = (checksum ^ ord(byte)) & 0xFF
         return checksum
 
     def getSize(self):

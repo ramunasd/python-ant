@@ -24,6 +24,7 @@
 ##############################################################################
 
 import thread
+from sys import exit
 
 # USB1 driver uses a USB<->Serial bridge
 import serial
@@ -195,7 +196,7 @@ class USB2Driver(Driver):
             try:
                 dev.detach_kernel_driver(0)
             except usb.core.USBError as e:
-                sys.exit("could not detach kernel driver: {}".format(e))
+                exit("could not detach kernel driver: {}".format(e))
 
         dev.set_configuration()
         cfg = dev.get_active_configuration()

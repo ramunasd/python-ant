@@ -61,38 +61,33 @@ def ProcessBuffer(buffer_):
 
 
 def EventPump(evm):
-    evm.pump_lock.acquire()
-    evm.pump = True
-    evm.pump_lock.release()
+    with evm.pump_lock:
+        evm.pump = True
 
     go = True
     buffer_ = ''
     while go:
-        evm.running_lock.acquire()
-        if not evm.running:
-            go = False
-        evm.running_lock.release()
+        with evm.running_lock:
+            if not evm.running:
+                go = False
 
         buffer_ += evm.driver.read(20)
         if len(buffer_) == 0:
             continue
         buffer_, messages = ProcessBuffer(buffer_)
 
-        evm.callbacks_lock.acquire()
-        for message in messages:
-            for callback in evm.callbacks:
-                try:
-                    callback.process(message)
-                except Exception, e:
-                    pass
-
-        evm.callbacks_lock.release()
+        with evm.callbacks_lock:
+            for message in messages:
+                for callback in evm.callbacks:
+                    try:
+                        callback.process(message)
+                    except Exception, e:
+                        pass
 
         time.sleep(0.002)
 
-    evm.pump_lock.acquire()
-    evm.pump = False
-    evm.pump_lock.release()
+    with evm.pump_lock:
+        evm.pump = False
 
 
 class EventCallback(object):
@@ -106,11 +101,11 @@ class AckCallback(EventCallback):
 
     def process(self, msg):
         if isinstance(msg, ChannelEventMessage):
-            self.evm.ack_lock.acquire()
-            self.evm.ack.append(msg)
-            if len(self.evm.ack) > MAX_ACK_QUEUE:
-                self.evm.ack = self.evm.ack[-MAX_ACK_QUEUE:]
-            self.evm.ack_lock.release()
+            evm = self.evm
+            with evm.ack_lock:
+                evm.ack.append(msg)
+                if len(evm.ack) > MAX_ACK_QUEUE:
+                    evm.ack = evm.ack[-MAX_ACK_QUEUE:]
 
 
 class MsgCallback(EventCallback):
@@ -118,11 +113,11 @@ class MsgCallback(EventCallback):
         self.evm = evm
 
     def process(self, msg):
-        self.evm.msg_lock.acquire()
-        self.evm.msg.append(msg)
-        if len(self.evm.msg) > MAX_MSG_QUEUE:
-            self.evm.msg = self.evm.msg[-MAX_MSG_QUEUE:]
-        self.evm.msg_lock.release()
+        evm = self.evm
+        with evm.msg_lock:
+            evm.msg.append(msg)
+            if len(evm.msg) > MAX_MSG_QUEUE:
+                evm.msg = evm.msg[-MAX_MSG_QUEUE:]
 
 
 class EventMachine(object):
@@ -143,75 +138,60 @@ class EventMachine(object):
         self.registerCallback(MsgCallback(self))
 
     def registerCallback(self, callback):
-        self.callbacks_lock.acquire()
-        if callback not in self.callbacks:
-            self.callbacks.append(callback)
-        self.callbacks_lock.release()
+        with self.callbacks_lock:
+            callbacks = self.callbacks
+            if callback not in callbacks:
+                callbacks.append(callback)
 
     def removeCallback(self, callback):
-        self.callbacks_lock.acquire()
-        if callback in self.callbacks:
-            self.callbacks.remove(callback)
-        self.callbacks_lock.release()
+        with self.callbacks_lock:
+            callbacks = self.callbacks
+            if callback in callbacks:
+                callbacks.remove(callback)
 
     def waitForAck(self, msg):
         while True:
-            self.ack_lock.acquire()
-            for emsg in self.ack:
-                if msg.getType() != emsg.getMessageID():
-                    continue
-                self.ack.remove(emsg)
-                self.ack_lock.release()
-                return emsg.getMessageCode()
-            self.ack_lock.release()
-            time.sleep(0.002)
+            with self.ack_lock:
+                for emsg in self.ack:
+                    if msg.getType() != emsg.getMessageID():
+                        continue
+                    self.ack.remove(emsg)
+                    return emsg.getMessageCode()
+                time.sleep(0.002)
 
     def waitForMessage(self, class_):
         while True:
-            self.msg_lock.acquire()
-            for emsg in self.msg:
-                if not isinstance(emsg, class_):
-                    continue
-                self.msg.remove(emsg)
-                self.msg_lock.release()
-                return emsg
-            self.msg_lock.release()
+            with self.msg_lock:
+                for emsg in self.msg:
+                    if not isinstance(emsg, class_):
+                        continue
+                    self.msg.remove(emsg)
+                    return emsg
             time.sleep(0.002)
 
     def start(self, driver=None):
-        self.running_lock.acquire()
-
-        if self.running:
-            self.running_lock.release()
-            return
-        self.running = True
-        if driver is not None:
-            self.driver = driver
-
-        thread.start_new_thread(EventPump, (self,))
-        while True:
-            self.pump_lock.acquire()
-            if self.pump:
-                self.pump_lock.release()
-                break
-            self.pump_lock.release()
-            time.sleep(0.001)
-
-        self.running_lock.release()
+        with self.running_lock:
+            if self.running:
+                return
+            self.running = True
+            if driver is not None:
+                self.driver = driver
+            
+            thread.start_new_thread(EventPump, (self,))
+            while True:
+                with self.pump_lock:
+                    if self.pump:
+                        break
+                time.sleep(0.001)
 
     def stop(self):
-        self.running_lock.acquire()
-
-        if not self.running:
-            self.running_lock.release()
-            return
-        self.running = False
-        self.running_lock.release()
+        with self.running_lock:
+            if not self.running:
+                return
+            self.running = False
 
         while True:
-            self.pump_lock.acquire()
-            if not self.pump:
-                self.pump_lock.release()
-                break
-            self.pump_lock.release()
+            with self.pump_lock:
+                if not self.pump:
+                    break
             time.sleep(0.001)

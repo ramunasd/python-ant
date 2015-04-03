@@ -99,7 +99,8 @@ class Channel(event.EventCallback):
     def open(self):
         msg = message.ChannelOpenMessage(number=self.number)
         self.node.driver.write(msg.encode())
-        if self.node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
+        ack = self.node.evm.waitForAck(msg)
+        if ack != RESPONSE_NO_ERROR:
             raise ChannelError('Could not open channel.')
 
     def close(self):
@@ -121,21 +122,19 @@ class Channel(event.EventCallback):
         self.is_free = True
 
     def registerCallback(self, callback):
-        self.cb_lock.acquire()
-        if callback not in self.cb:
-            self.cb.append(callback)
-        self.cb_lock.release()
+        with self.cb_lock:
+            if callback not in self.cb:
+                self.cb.append(callback)
 
     def process(self, msg):
-        self.cb_lock.acquire()
-        if isinstance(msg, message.ChannelMessage) and \
-        msg.getChannelNumber() == self.number:
-            for callback in self.cb:
-                try:
-                    callback.process(msg)
-                except:
-                    pass  # Who cares?
-        self.cb_lock.release()
+        with self.cb_lock:
+            if isinstance(msg, message.ChannelMessage) and \
+               msg.getChannelNumber() == self.number:
+                for callback in self.cb:
+                    try:
+                        callback.process(msg)
+                    except:
+                        pass  # Who cares?
 
 
 class Node(event.EventCallback):
@@ -174,7 +173,7 @@ class Node(event.EventCallback):
 
     def reset(self):
         self.driver.write(message.SystemResetMessage().encode())
-        caps = self.evm.waitForMessage(message.StartupMessage)
+        self.evm.waitForMessage(message.StartupMessage)
 
     def init(self):
         if not self.running:

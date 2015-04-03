@@ -48,15 +48,11 @@ class Driver(object):
         self.is_open = False
 
     def isOpen(self):
-        self._lock.acquire()
-        io = self.is_open
-        self._lock.release()
-        return io
+        with self._lock:
+            return self.is_open
 
     def open(self):
-        self._lock.acquire()
-
-        try:
+        with self._lock:
             if self.is_open:
                 raise DriverError("Could not open device (already open).")
 
@@ -64,13 +60,9 @@ class Driver(object):
             self.is_open = True
             if self.log:
                 self.log.logOpen()
-        finally:
-            self._lock.release()
 
     def close(self):
-        self._lock.acquire()
-
-        try:
+        with self._lock:
             if not self.is_open:
                 raise DriverError("Could not close device (not open).")
 
@@ -78,13 +70,9 @@ class Driver(object):
             self.is_open = False
             if self.log:
                 self.log.logClose()
-        finally:
-            self._lock.release()
 
     def read(self, count):
-        self._lock.acquire()
-
-        try:
+        with self._lock:
             if not self.is_open:
                 raise DriverError("Could not read from device (not open).")
             if count <= 0:
@@ -96,15 +84,10 @@ class Driver(object):
 
             if self.debug:
                 self._dump(data, 'READ')
-        finally:
-            self._lock.release()
-
         return data
 
     def write(self, data):
-        self._lock.acquire()
-
-        try:
+        with self._lock:
             if not self.is_open:
                 raise DriverError("Could not write to device (not open).")
             if len(data) <= 0:
@@ -116,9 +99,6 @@ class Driver(object):
             ret = self._write(data)
             if self.log:
                 self.log.logWrite(data[0:ret])
-        finally:
-            self._lock.release()
-
         return ret
 
     def _dump(self, data, title):

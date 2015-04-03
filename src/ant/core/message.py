@@ -134,9 +134,10 @@ class ChannelUnassignMessage(ChannelMessage):
 
 class ChannelAssignMessage(ChannelMessage):
     def __init__(self, number=0x00, type_=0x00, network=0x00):
-        payload = struct.pack('BB', type_, network)
         ChannelMessage.__init__(self, type_=MESSAGE_CHANNEL_ASSIGN,
-                                payload=payload, number=number)
+                                payload=bytearray(2), number=number)
+        self.setChannelType(type_)
+        self.setNetworkNumber(network)
 
     def getChannelType(self):
         return self.payload[1]

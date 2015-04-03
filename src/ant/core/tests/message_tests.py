@@ -30,7 +30,7 @@ from ant.core.message import *
 
 class MessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = Message()
+        self.message = Message(type_=0x00)
 
     def test_get_setPayload(self):
         self.assertRaises(MessageError, self.message.setPayload,
@@ -62,26 +62,25 @@ class MessageTest(unittest.TestCase):
                          '\xA4\x03\x42\x00\x00\x00\xE5')
 
     def test_decode(self):
-        self.assertRaises(MessageError, self.message.decode,
+        self.assertRaises(MessageError, Message.decode,
                           '\xA5\x03\x42\x00\x00\x00\xE5')
-        self.assertRaises(MessageError, self.message.decode,
+        self.assertRaises(MessageError, Message.decode,
                           '\xA4\x14\x42' + ('\x00' * 20) + '\xE5')
-        self.assertRaises(MessageError, self.message.decode,
+        self.assertRaises(MessageError, Message.decode,
                           '\xA4\x03\x42\x01\x02\xF3\xE5')
-        self.assertEqual(self.message.decode('\xA4\x03\x42\x00\x00\x00\xE5'),
-                         7)
-        self.assertEqual(self.message.getType(), MESSAGE_CHANNEL_ASSIGN)
-        self.assertEqual(self.message.getPayload(), '\x00' * 3)
-        self.assertEqual(self.message.getChecksum(), 0xE5)
-
-    def test_getHandler(self):
-        handler = self.message.getHandler('\xA4\x03\x42\x00\x00\x00\xE5')
+        msg = Message.decode('\xA4\x03\x42\x00\x00\x00\xE5')
+        self.assertEqual(msg.getSize(), 7)
+        self.assertEqual(msg.getType(), MESSAGE_CHANNEL_ASSIGN)
+        self.assertEqual(msg.getPayload(), '\x00' * 3)
+        self.assertEqual(msg.getChecksum(), 0xE5)
+        
+        handler = Message.decode('\xA4\x03\x42\x00\x00\x00\xE5')
         self.assertTrue(isinstance(handler, ChannelAssignMessage))
-        self.assertRaises(MessageError, self.message.getHandler,
+        self.assertRaises(MessageError, Message.decode,
                           '\xA4\x03\xFF\x00\x00\x00\xE5')
-        self.assertRaises(MessageError, self.message.getHandler,
+        self.assertRaises(MessageError, Message.decode,
                           '\xA4\x03\x42')
-        self.assertRaises(MessageError, self.message.getHandler,
+        self.assertRaises(MessageError, Message.decode,
                           '\xA4\x05\x42\x00\x00\x00\x00')
 
 

@@ -44,7 +44,7 @@ def ProcessBuffer(buffer_):
 
     while len(buffer_) > 0:
         try:
-            msg = Message().getHandler(buffer_)
+            msg = Message.decode(buffer_)
             messages.append(msg)
             buffer_ = buffer_[msg.getSize():]
         except MessageError as err:

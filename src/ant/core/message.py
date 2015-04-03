@@ -332,7 +332,7 @@ class ChannelCloseMessage(ChannelMessage):
 class ChannelRequestMessage(ChannelMessage):
     def __init__(self, number=0x00, message_id=MESSAGE_CHANNEL_STATUS):
         ChannelMessage.__init__(self, type_=MESSAGE_CHANNEL_REQUEST,
-                                number=number, payload=bytearray(1))
+                                payload=bytearray(1), number=number)
         self.setMessageID(message_id)
 
     def getMessageID(self):
@@ -373,7 +373,7 @@ class ChannelBurstDataMessage(ChannelMessage):
 class ChannelEventMessage(ChannelMessage):
     def __init__(self, number=0x00, message_id=0x00, message_code=0x00):
         ChannelMessage.__init__(self, type_=MESSAGE_CHANNEL_EVENT,
-                                number=number, payload=bytearray(2))
+                                payload=bytearray(2), number=number)
         self.setMessageID(message_id)
         self.setMessageCode(message_code)
 

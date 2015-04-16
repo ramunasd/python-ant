@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring, invalid-name
 ##############################################################################
 #
 # Copyright (c) 2011, Martín Raúl Villalba

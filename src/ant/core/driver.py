@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring, invalid-name
 ##############################################################################
 #
 # Copyright (c) 2011, Martín Raúl Villalba
@@ -24,7 +25,6 @@
 ##############################################################################
 
 import thread
-from sys import exit
 
 # USB1 driver uses a USB<->Serial bridge
 import serial

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring, invalid-name
 ##############################################################################
 #
 # Copyright (c) 2011, Martín Raúl Villalba
@@ -22,7 +23,6 @@
 # IN THE SOFTWARE.
 #
 ##############################################################################
-# pylint: disable=missing-docstring,invalid-name
 
 import thread
 import uuid
@@ -134,8 +134,8 @@ class Channel(event.EventCallback):
                 for callback in self.cb:
                     try:
                         callback.process(msg)
-                    except:
-                        pass  # Who cares?
+                    except Exception as err:
+                        print(err)
 
 
 class Node(event.EventCallback):

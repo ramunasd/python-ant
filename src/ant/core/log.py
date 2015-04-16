@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring, invalid-name
 ##############################################################################
 #
 # Copyright (c) 2011, Martín Raúl Villalba
@@ -23,7 +24,7 @@
 #
 ##############################################################################
 
-import time
+from time import time
 import datetime
 
 import msgpack
@@ -102,7 +103,7 @@ class LogWriter(object):
             self.is_open = False
 
     def _logEvent(self, event, data=None):
-        ev = [event, int(time.time()), data]
+        ev = [event, int(time()), data]
 
         if data is None:
             ev = ev[0:-1]

@@ -22,7 +22,7 @@
 # IN THE SOFTWARE.
 #
 ##############################################################################
-
+# pylint: disable=missing-docstring
 
 class ANTException(Exception):
     pass
@@ -34,7 +34,7 @@ class DriverError(ANTException):
 
 class MessageError(ANTException):
     def __init__(self, msg, internal=''):
-        Exception.__init__(self, msg)
+        super(MessageError, self).__init__(msg)
         self.internal = internal
 
 

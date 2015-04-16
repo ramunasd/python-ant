@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring, invalid-name
 ##############################################################################
 #
 # Copyright (c) 2011, Martín Raúl Villalba
@@ -22,7 +23,6 @@
 # IN THE SOFTWARE.
 #
 ##############################################################################
-# pylint: disable=missing-docstring,invalid-name
 #
 # Beware s/he who enters: uncommented, non unit-tested,
 # don't-fix-it-if-it-ain't-broken kind of threaded code ahead.
@@ -90,7 +90,7 @@ def EventPump(evm):
 
 class EventCallback(object):
     def process(self, msg):
-        pass
+        raise NotImplementedError()
 
 
 class AckCallback(EventCallback):

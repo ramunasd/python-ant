@@ -64,12 +64,11 @@ def EventPump(evm):
     with evm.pump_lock:
         evm.pump = True
 
-    go = True
     buffer_ = ''
-    while go:
+    while True:
         with evm.running_lock:
             if not evm.running:
-                go = False
+                break
 
         buffer_ += evm.driver.read(20)
         if len(buffer_) == 0:

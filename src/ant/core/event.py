@@ -156,7 +156,7 @@ class EventMachine(object):
                         continue
                     self.ack.remove(emsg)
                     return emsg.messageCode
-                time.sleep(0.002)
+            time.sleep(0.002)
 
     def waitForMessage(self, class_):
         while True:

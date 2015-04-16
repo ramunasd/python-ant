@@ -148,19 +148,21 @@ class ChannelAssignMessage(ChannelMessage):
     
     def __init__(self, number=0x00, type_=0x00, network=0x00):
         super(ChannelAssignMessage, self).__init__(payload=bytearray(2), number=number)
-        self.setChannelType(type_)
-        self.setNetworkNumber(network)
+        self.channelType = type_
+        self.networkNumber = network
     
-    def getChannelType(self):
+    @property
+    def channelType(self):
         return self._payload[1]
-    
-    def setChannelType(self, type_):
+    @channelType.setter
+    def channelType(self, type_):
         self._payload[1] = type_
     
-    def getNetworkNumber(self):
+    @property
+    def networkNumber(self):
         return self._payload[2]
-    
-    def setNetworkNumber(self, number):
+    @networkNumber.setter
+    def networkNumber(self, number):
         self._payload[2] = number
 
 

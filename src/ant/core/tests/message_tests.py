@@ -106,18 +106,18 @@ class ChannelAssignMessageTest(unittest.TestCase):
     def setUp(self):
         self.message = ChannelAssignMessage()
 
-    def test_get_setChannelType(self):
-        self.message.setChannelType(0x10)
-        self.assertEquals(self.message.getChannelType(), 0x10)
+    def test_get_channelType(self):
+        self.message.channelType = 0x10
+        self.assertEquals(self.message.channelType, 0x10)
 
-    def test_get_setNetworkNumber(self):
-        self.message.setNetworkNumber(0x11)
-        self.assertEquals(self.message.getNetworkNumber(), 0x11)
+    def test_get_networkNumber(self):
+        self.message.networkNumber = 0x11
+        self.assertEquals(self.message.networkNumber, 0x11)
 
     def test_payload(self):
         self.message.channelNumber = 0x01
-        self.message.setChannelType(0x02)
-        self.message.setNetworkNumber(0x03)
+        self.message.channelType = 0x02
+        self.message.networkNumber = 0x03
         self.assertEquals(self.message.payload, '\x01\x02\x03')
 
 

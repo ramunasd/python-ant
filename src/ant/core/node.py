@@ -59,8 +59,8 @@ class Channel(event.EventCallback):
 
     def assign(self, net_key, ch_type):
         msg = message.ChannelAssignMessage(number=self.number)
-        msg.setNetworkNumber(self.node.getNetworkKey(net_key).number)
-        msg.setChannelType(ch_type)
+        msg.networkNumber = self.node.getNetworkKey(net_key).number
+        msg.channelType = ch_type
         self.node.driver.write(msg.encode())
         if self.node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not assign channel.')

@@ -103,9 +103,10 @@ class AckCallback(EventCallback):
         if isinstance(msg, ChannelEventMessage):
             evm = self.evm
             with evm.ack_lock:
-                evm.ack.append(msg)
-                if len(evm.ack) > MAX_ACK_QUEUE:
-                    evm.ack = evm.ack[-MAX_ACK_QUEUE:]
+                ack = evm.ack
+                ack.append(msg)
+                if len(ack) > MAX_ACK_QUEUE:
+                    evm.ack = ack[-MAX_ACK_QUEUE:]
 
 
 class MsgCallback(EventCallback):
@@ -115,9 +116,10 @@ class MsgCallback(EventCallback):
     def process(self, msg):
         evm = self.evm
         with evm.msg_lock:
-            evm.msg.append(msg)
-            if len(evm.msg) > MAX_MSG_QUEUE:
-                evm.msg = evm.msg[-MAX_MSG_QUEUE:]
+            emsg = evm.msg
+            emsg.append(msg)
+            if len(emsg) > MAX_MSG_QUEUE:
+                evm.msg = emsg[-MAX_MSG_QUEUE:]
 
 
 class EventMachine(object):

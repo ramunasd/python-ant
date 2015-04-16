@@ -234,12 +234,13 @@ class ChannelFrequencyMessage(ChannelMessage):
     
     def __init__(self, number=0x00, frequency=66):
         super(ChannelFrequencyMessage, self).__init__(payload=bytearray(1), number=number)
-        self.setFrequency(frequency)
+        self.frequency = frequency
     
-    def getFrequency(self):
+    @property
+    def frequency(self):
         return self._payload[1]
-    
-    def setFrequency(self, frequency):
+    @frequency.setter
+    def frequency(self, frequency):
         self._payload[1] = frequency
 
 
@@ -248,12 +249,13 @@ class ChannelTXPowerMessage(ChannelMessage):
     
     def __init__(self, number=0x00, power=0x00):
         super(ChannelTXPowerMessage, self).__init__(payload=bytearray(1), number=number)
-        self.setPower(power)
+        self.power = power
     
-    def getPower(self):
+    @property
+    def power(self):
         return self._payload[1]
-    
-    def setPower(self, power):
+    @power.setter
+    def power(self, power):
         self._payload[1] = power
 
 
@@ -262,19 +264,21 @@ class NetworkKeyMessage(Message):
     
     def __init__(self, number=0x00, key='\x00' * 8):
         super(NetworkKeyMessage, self).__init__(payload=bytearray(9))
-        self.setNumber(number)
-        self.setKey(key)
+        self.number = number
+        self.key = key
     
-    def getNumber(self):
+    @property
+    def number(self):
         return self._payload[0]
-    
-    def setNumber(self, number):
+    @number.setter
+    def number(self, number):
         self._payload[0] = number
     
-    def getKey(self):
+    @property
+    def key(self):
         return self._payload[1:]
-    
-    def setKey(self, key):
+    @key.setter
+    def key(self, key):
         self._payload[1:] = key
 
 
@@ -283,12 +287,13 @@ class TXPowerMessage(Message):
     
     def __init__(self, power=0x00):
         super(TXPowerMessage, self).__init__(payload=bytearray(2))
-        self.setPower(power)
+        self.power = power
     
-    def getPower(self):
+    @property
+    def power(self):
         return self._payload[1]
-    
-    def setPower(self, power):
+    @power.setter
+    def power(self, power):
         self._payload[1] = power
 
 

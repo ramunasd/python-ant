@@ -178,12 +178,12 @@ class ChannelFrequencyMessageTest(unittest.TestCase):
         self.message = ChannelFrequencyMessage()
 
     def test_get_setFrequency(self):
-        self.message.setFrequency(22)
-        self.assertEquals(self.message.getFrequency(), 22)
+        self.message.frequency = 22
+        self.assertEquals(self.message.frequency, 22)
 
     def test_payload(self):
         self.message.channelNumber = 0x01
-        self.message.setFrequency(0x02)
+        self.message.frequency = 0x02
         self.assertEquals(self.message.payload, '\x01\x02')
 
 
@@ -192,12 +192,12 @@ class ChannelTXPowerMessageTest(unittest.TestCase):
         self.message = ChannelTXPowerMessage()
 
     def test_get_setPower(self):
-        self.message.setPower(0xFA)
-        self.assertEquals(self.message.getPower(), 0xFA)
+        self.message.power = 0xFA
+        self.assertEquals(self.message.power, 0xFA)
 
     def test_payload(self):
         self.message.channelNumber = 0x01
-        self.message.setPower(0x02)
+        self.message.power = 0x02
         self.assertEquals(self.message.payload, '\x01\x02')
 
 
@@ -206,16 +206,16 @@ class NetworkKeyMessageTest(unittest.TestCase):
         self.message = NetworkKeyMessage()
 
     def test_get_setNumber(self):
-        self.message.setNumber(0xFA)
-        self.assertEquals(self.message.getNumber(), 0xFA)
+        self.message.number = 0xFA
+        self.assertEquals(self.message.number, 0xFA)
 
     def test_get_setKey(self):
-        self.message.setKey('\xFD' * 8)
-        self.assertEquals(self.message.getKey(), '\xFD' * 8)
+        self.message.key = '\xFD' * 8
+        self.assertEquals(self.message.key, '\xFD' * 8)
 
     def test_payload(self):
-        self.message.setNumber(0x01)
-        self.message.setKey('\x02\x03\x04\x05\x06\x07\x08\x09')
+        self.message.number = 0x01
+        self.message.key = '\x02\x03\x04\x05\x06\x07\x08\x09'
         self.assertEquals(self.message.payload,
                           '\x01\x02\x03\x04\x05\x06\x07\x08\x09')
 
@@ -225,11 +225,11 @@ class TXPowerMessageTest(unittest.TestCase):
         self.message = TXPowerMessage()
 
     def test_get_setPower(self):
-        self.message.setPower(0xFA)
-        self.assertEquals(self.message.getPower(), 0xFA)
+        self.message.power = 0xFA
+        self.assertEquals(self.message.power, 0xFA)
 
     def test_payload(self):
-        self.message.setPower(0x01)
+        self.message.power = 0x01
         self.assertEquals(self.message.payload, '\x00\x01')
 
 

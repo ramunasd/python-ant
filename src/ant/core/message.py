@@ -30,7 +30,18 @@ from ant.core.exceptions import MessageError
 from ant.core.constants import *
 
 
+class MessageType(type):
+    
+    def __init__(cls, name, bases, dict_):
+        super(MessageType, cls).__init__(name, bases, dict_)
+        type_ = cls.type
+        if type_ is not None:
+            cls.TYPES[type_] = cls
+
+
 class Message(object):
+    __metaclass__ = MessageType
+    TYPES = {}
     type = None
     
     INCOMPLETE = 'incomplete'
@@ -81,8 +92,8 @@ class Message(object):
         raw.append(self.getChecksum())
         return raw
     
-    @staticmethod
-    def decode(raw):
+    @classmethod
+    def decode(cls, raw):
         raw = bytearray(raw)
         if len(raw) < 5:
             raise MessageError('Could not decode (message is incomplete).',
@@ -98,7 +109,7 @@ class Message(object):
                                internal=Message.INCOMPLETE)
             
         try:
-            msg = TYPE_TABLE[type_]()
+            msg = cls.TYPES[type_]()
         except KeyError:
             raise MessageError('Could not decode (type "%d" unknown).' % type_)
         msg.setPayload(raw[3:length + 3])
@@ -504,29 +515,3 @@ class SerialNumberMessage(Message):
                                '(expected 4 bytes).')
 
         self.setPayload(bytearray(serial))
-
-
-TYPE_TABLE = {
-    MESSAGE_CHANNEL_UNASSIGN: ChannelUnassignMessage,
-    MESSAGE_CHANNEL_ASSIGN: ChannelAssignMessage,
-    MESSAGE_CHANNEL_ID: ChannelIDMessage,
-    MESSAGE_CHANNEL_PERIOD: ChannelPeriodMessage,
-    MESSAGE_CHANNEL_SEARCH_TIMEOUT: ChannelSearchTimeoutMessage,
-    MESSAGE_CHANNEL_FREQUENCY: ChannelFrequencyMessage,
-    MESSAGE_CHANNEL_TX_POWER: ChannelTXPowerMessage,
-    MESSAGE_NETWORK_KEY: NetworkKeyMessage,
-    MESSAGE_TX_POWER: TXPowerMessage,
-    MESSAGE_SYSTEM_RESET: SystemResetMessage,
-    MESSAGE_CHANNEL_OPEN: ChannelOpenMessage,
-    MESSAGE_CHANNEL_CLOSE: ChannelCloseMessage,
-    MESSAGE_CHANNEL_REQUEST: ChannelRequestMessage,
-    MESSAGE_CHANNEL_BROADCAST_DATA: ChannelBroadcastDataMessage,
-    MESSAGE_CHANNEL_ACKNOWLEDGED_DATA: ChannelAcknowledgedDataMessage,
-    MESSAGE_CHANNEL_BURST_DATA: ChannelBurstDataMessage,
-    MESSAGE_CHANNEL_EVENT: ChannelEventMessage,
-    MESSAGE_CHANNEL_STATUS: ChannelStatusMessage,
-    MESSAGE_VERSION: VersionMessage,
-    MESSAGE_CAPABILITIES: CapabilitiesMessage,
-    MESSAGE_SERIAL_NUMBER: SerialNumberMessage,
-    MESSAGE_STARTUP: StartupMessage,
-}

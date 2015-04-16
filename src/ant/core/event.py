@@ -129,7 +129,7 @@ class EventMachine(object):
 
     def __init__(self, driver):
         self.driver = driver
-        self.callbacks = []
+        self.callbacks = set()
         self.running = False
         self.pump = False
         self.ack = []
@@ -139,15 +139,14 @@ class EventMachine(object):
 
     def registerCallback(self, callback):
         with self.callbacks_lock:
-            callbacks = self.callbacks
-            if callback not in callbacks:
-                callbacks.append(callback)
+            self.callbacks.add(callback)
 
     def removeCallback(self, callback):
         with self.callbacks_lock:
-            callbacks = self.callbacks
-            if callback in callbacks:
-                callbacks.remove(callback)
+            try:
+                self.callbacks.remove(callback)
+            except KeyError:
+                pass
 
     def waitForAck(self, msg):
         while True:

@@ -22,13 +22,14 @@
 # IN THE SOFTWARE.
 #
 ##############################################################################
+# pylint: disable=missing-docstring,invalid-name
 
-import time
 import thread
 import uuid
 
-from ant.core.constants import *
-from ant.core.exceptions import *
+from ant.core.constants import (RESPONSE_NO_ERROR, EVENT_CHANNEL_CLOSED,
+                                MESSAGE_CAPABILITIES)
+from ant.core.exceptions import ChannelError, NodeError
 from ant.core import message
 from ant.core import event
 

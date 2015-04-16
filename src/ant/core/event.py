@@ -22,7 +22,7 @@
 # IN THE SOFTWARE.
 #
 ##############################################################################
-
+# pylint: disable=missing-docstring,invalid-name
 #
 # Beware s/he who enters: uncommented, non unit-tested,
 # don't-fix-it-if-it-ain't-broken kind of threaded code ahead.
@@ -34,7 +34,7 @@ MAX_MSG_QUEUE = 25
 import thread
 import time
 
-from ant.core.constants import *
+from ant.core.constants import MESSAGE_TX_SYNC
 from ant.core.message import Message, ChannelEventMessage
 from ant.core.exceptions import MessageError
 
@@ -81,7 +81,7 @@ def EventPump(evm):
                 for callback in evm.callbacks:
                     try:
                         callback.process(message)
-                    except Exception, e:
+                    except Exception:
                         pass
 
         time.sleep(0.002)

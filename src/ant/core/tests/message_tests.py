@@ -306,14 +306,15 @@ class ChannelStatusMessageTest(unittest.TestCase):
     def setUp(self):
         self.message = ChannelStatusMessage()
 
-    def test_get_setStatus(self):
-        self.message.setStatus(0xFA)
-        self.assertEquals(self.message.getStatus(), 0xFA)
-        self.assertRaises(MessageError, self.message.setStatus, 0xFFFF)
+    def test_get_status(self):
+        with self.assertRaises(MessageError):
+            self.message.status = 0xFFFF
+        self.message.status = 0xFA
+        self.assertEquals(self.message.status, 0xFA)
 
     def test_payload(self):
         self.message.channelNumber = 0x01
-        self.message.setStatus(0x02)
+        self.message.status = 0x02
         self.assertEquals(self.message.payload, '\x01\x02')
 
 
@@ -321,13 +322,14 @@ class VersionMessageTest(unittest.TestCase):
     def setUp(self):
         self.message = VersionMessage()
 
-    def test_get_setVersion(self):
-        self.message.setVersion('\xAB' * 9)
-        self.assertEquals(self.message.getVersion(), '\xAB' * 9)
-        self.assertRaises(MessageError, self.message.setVersion, '1234')
+    def test_get_version(self):
+        with self.assertRaises(MessageError):
+            self.message.version =  '1234'
+        self.message.version = '\xAB' * 9
+        self.assertEquals(self.message.version, '\xAB' * 9)
 
     def test_payload(self):
-        self.message.setVersion('\x01' * 9)
+        self.message.version = '\x01' * 9
         self.assertEquals(self.message.payload, '\x01' * 9)
 
 
@@ -375,12 +377,12 @@ class SerialNumberMessageTest(unittest.TestCase):
     def setUp(self):
         self.message = SerialNumberMessage()
 
-    def test_get_setSerialNumber(self):
-        self.message.setSerialNumber('\xFA\xFB\xFC\xFD')
-        self.assertEquals(self.message.getSerialNumber(), '\xFA\xFB\xFC\xFD')
-        self.assertRaises(MessageError, self.message.setSerialNumber,
-                          '\xFF' * 8)
+    def test_get_serialNumber(self):
+        with self.assertRaises(MessageError):
+            self.message.serialNumber = '\xFF' * 8
+        self.message.serialNumber = '\xFA\xFB\xFC\xFD'
+        self.assertEquals(self.message.serialNumber, '\xFA\xFB\xFC\xFD')
 
     def test_payload(self):
-        self.message.setSerialNumber('\x01\x02\x03\x04')
+        self.message.serialNumber = '\x01\x02\x03\x04'
         self.assertEquals(self.message.payload, '\x01\x02\x03\x04')

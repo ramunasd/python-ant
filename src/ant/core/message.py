@@ -399,12 +399,13 @@ class ChannelStatusMessage(ChannelMessage):
     
     def __init__(self, number=0x00, status=0x00):
         super(ChannelStatusMessage, self).__init__(payload=bytearray(1), number=number)
-        self.setStatus(status)
+        self.status = status
     
-    def getStatus(self):
+    @property
+    def status(self):
         return self._payload[1]
-    
-    def setStatus(self, status):
+    @status.setter
+    def status(self, status):
         if (status > 0xFF) or (status < 0x00):
             raise MessageError('Could not set channel status (out of range).')
         
@@ -416,12 +417,13 @@ class VersionMessage(Message):
     
     def __init__(self, version='\x00' * 9):
         super(VersionMessage, self).__init__(payload=bytearray(9))
-        self.setVersion(version)
+        self.version = version
     
-    def getVersion(self):
+    @property
+    def version(self):
         return self._payload
-    
-    def setVersion(self, version):
+    @version.setter
+    def version(self, version):
         if len(version) != 9:
             raise MessageError('Could not set ANT version (expected 9 bytes).')
         
@@ -433,12 +435,13 @@ class StartupMessage(Message):
     
     def __init__(self, startupMessage=0x00):
         super(StartupMessage, self).__init__(self, payload=bytearray(1))
-        self.setStartupMessage(startupMessage)
-        
-    def getStartupMessage(self):
+        self.startupMessage = startupMessage
+    
+    @property
+    def startupMessage(self):
         return self._payload[0]
-        
-    def setStartupMessage(self, startupMessage):
+    @startupMessage.setter
+    def startupMessage(self, startupMessage):
         if (startupMessage > 0xFF) or (startupMessage < 0x00):
             raise MessageError('Could not set start-up message (out of range).')
         self._payload[0] = startupMessage
@@ -505,12 +508,13 @@ class SerialNumberMessage(Message):
     
     def __init__(self, serial='\x00' * 4):
         super(SerialNumberMessage, self).__init__()
-        self.setSerialNumber(serial)
+        self.serialNumber = serial
     
-    def getSerialNumber(self):
+    @property
+    def serialNumber(self):
         return self._payload
-    
-    def setSerialNumber(self, serial):
+    @serialNumber.setter
+    def serialNumber(self, serial):
         if len(serial) != 4:
             raise MessageError('Could not set serial number (expected 4 bytes).')
         

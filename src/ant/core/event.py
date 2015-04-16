@@ -31,8 +31,8 @@
 MAX_ACK_QUEUE = 25
 MAX_MSG_QUEUE = 25
 
+from time import sleep
 from threading import Lock, Thread
-import time
 
 from ant.core.constants import MESSAGE_TX_SYNC
 from ant.core.message import Message, ChannelEventMessage
@@ -83,7 +83,7 @@ def EventPump(evm):
                     except Exception:
                         pass
 
-        time.sleep(0.002)
+        sleep(0.002)
 
     with evm.pump_lock:
         evm.pump = False
@@ -157,7 +157,7 @@ class EventMachine(object):
                     if type_ == emsg.messageID:
                         ack.remove(emsg)
                         return emsg.messageCode
-            time.sleep(0.002)
+            sleep(0.002)
 
     def waitForMessage(self, class_):
         msg = self.msg
@@ -167,7 +167,7 @@ class EventMachine(object):
                     if isinstance(emsg, class_):
                         msg.remove(emsg)
                         return emsg
-            time.sleep(0.002)
+            sleep(0.002)
 
     def start(self, driver=None):
         with self.running_lock:
@@ -183,7 +183,7 @@ class EventMachine(object):
                 with self.pump_lock:
                     if self.pump:
                         break
-                time.sleep(0.001)
+                sleep(0.001)
 
     def stop(self):
         with self.running_lock:
@@ -195,4 +195,4 @@ class EventMachine(object):
             with self.pump_lock:
                 if not self.pump:
                     break
-            time.sleep(0.001)
+            sleep(0.001)

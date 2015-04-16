@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring, invalid-name
 ##############################################################################
 #
 # Copyright (c) 2011, Martín Raúl Villalba
@@ -23,10 +24,14 @@
 #
 ##############################################################################
 
+from __future__ import division, absolute_import, print_function, unicode_literals
+
 import unittest
 
-from ant.core.constants import *
-from ant.core.message import *
+from ant.core.exceptions import MessageError
+from ant.core.constants import MESSAGE_SYSTEM_RESET, MESSAGE_CHANNEL_ASSIGN
+from ant.core.message import Message
+from ant.core import message as msg
 
 
 class MessageTest(unittest.TestCase):
@@ -35,9 +40,9 @@ class MessageTest(unittest.TestCase):
 
     def test_get_payload(self):
         with self.assertRaises(MessageError):
-            self.message.payload = '\xFF' * 15
-        self.message.payload = '\x11' * 5
-        self.assertEquals(self.message.payload, '\x11' * 5)
+            self.message.payload = b'\xFF' * 15
+        self.message.payload = b'\x11' * 5
+        self.assertEquals(self.message.payload, b'\x11' * 5)
 
     def test_get_setType(self):
         with self.assertRaises(MessageError):
@@ -55,41 +60,41 @@ class MessageTest(unittest.TestCase):
         self.assertEquals(self.message.checksum, 0xE5)
 
     def test_size(self):
-        self.message.payload = '\x11' * 7
+        self.message.payload = b'\x11' * 7
         self.assertEquals(len(self.message), 11)
 
     def test_encode(self):
         self.message = Message(type_=MESSAGE_CHANNEL_ASSIGN,
                                payload=bytearray(3))
         self.assertEqual(self.message.encode(),
-                         '\xA4\x03\x42\x00\x00\x00\xE5')
+                         b'\xA4\x03\x42\x00\x00\x00\xE5')
 
     def test_decode(self):
         self.assertRaises(MessageError, Message.decode,
-                          '\xA5\x03\x42\x00\x00\x00\xE5')
+                          b'\xA5\x03\x42\x00\x00\x00\xE5')
         self.assertRaises(MessageError, Message.decode,
-                          '\xA4\x14\x42' + ('\x00' * 20) + '\xE5')
+                          b'\xA4\x14\x42' + (b'\x00' * 20) + b'\xE5')
         self.assertRaises(MessageError, Message.decode,
-                          '\xA4\x03\x42\x01\x02\xF3\xE5')
-        msg = Message.decode('\xA4\x03\x42\x00\x00\x00\xE5')
-        self.assertEqual(len(msg), 7)
-        self.assertEqual(msg.type, MESSAGE_CHANNEL_ASSIGN)
-        self.assertEqual(msg.payload, '\x00' * 3)
-        self.assertEqual(msg.checksum, 0xE5)
+                          b'\xA4\x03\x42\x01\x02\xF3\xE5')
+        msg_ = Message.decode(b'\xA4\x03\x42\x00\x00\x00\xE5')
+        self.assertEqual(len(msg_), 7)
+        self.assertEqual(msg_.type, MESSAGE_CHANNEL_ASSIGN)
+        self.assertEqual(msg_.payload, b'\x00' * 3)
+        self.assertEqual(msg_.checksum, 0xE5)
         
-        handler = Message.decode('\xA4\x03\x42\x00\x00\x00\xE5')
-        self.assertTrue(isinstance(handler, ChannelAssignMessage))
+        handler = Message.decode(b'\xA4\x03\x42\x00\x00\x00\xE5')
+        self.assertTrue(isinstance(handler, msg.ChannelAssignMessage))
         self.assertRaises(MessageError, Message.decode,
-                          '\xA4\x03\xFF\x00\x00\x00\xE5')
+                          b'\xA4\x03\xFF\x00\x00\x00\xE5')
         self.assertRaises(MessageError, Message.decode,
-                          '\xA4\x03\x42')
+                          b'\xA4\x03\x42')
         self.assertRaises(MessageError, Message.decode,
-                          '\xA4\x05\x42\x00\x00\x00\x00')
+                          b'\xA4\x05\x42\x00\x00\x00\x00')
 
 
 class ChannelMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = ChannelMessage(type_=MESSAGE_SYSTEM_RESET)
+        self.message = msg.ChannelMessage(type_=MESSAGE_SYSTEM_RESET)
 
     def test_get_ChannelNumber(self):
         self.assertEquals(self.message.channelNumber, 0)
@@ -104,7 +109,7 @@ class ChannelUnassignMessageTest(unittest.TestCase):
 
 class ChannelAssignMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = ChannelAssignMessage()
+        self.message = msg.ChannelAssignMessage()
 
     def test_get_channelType(self):
         self.message.channelType = 0x10
@@ -118,12 +123,12 @@ class ChannelAssignMessageTest(unittest.TestCase):
         self.message.channelNumber = 0x01
         self.message.channelType = 0x02
         self.message.networkNumber = 0x03
-        self.assertEquals(self.message.payload, '\x01\x02\x03')
+        self.assertEquals(self.message.payload, b'\x01\x02\x03')
 
 
 class ChannelIDMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = ChannelIDMessage()
+        self.message = msg.ChannelIDMessage()
 
     def test_get_deviceNumber(self):
         self.message.deviceNumber = 0x10FA
@@ -142,12 +147,12 @@ class ChannelIDMessageTest(unittest.TestCase):
         self.message.deviceNumber = 0x0302
         self.message.deviceType = 0x04
         self.message.transmissionType = 0x05
-        self.assertEquals(self.message.payload, '\x01\x02\x03\x04\x05')
+        self.assertEquals(self.message.payload, b'\x01\x02\x03\x04\x05')
 
 
 class ChannelPeriodMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = ChannelPeriodMessage()
+        self.message = msg.ChannelPeriodMessage()
 
     def test_get_channelPeriod(self):
         self.message.channelPeriod = 0x10FA
@@ -156,12 +161,12 @@ class ChannelPeriodMessageTest(unittest.TestCase):
     def test_payload(self):
         self.message.channelNumber = 0x01
         self.message.channelPeriod = 0x0302
-        self.assertEquals(self.message.payload, '\x01\x02\x03')
+        self.assertEquals(self.message.payload, b'\x01\x02\x03')
 
 
 class ChannelSearchTimeoutMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = ChannelSearchTimeoutMessage()
+        self.message = msg.ChannelSearchTimeoutMessage()
 
     def test_get_setTimeout(self):
         self.message.timeout = 0x10
@@ -170,12 +175,12 @@ class ChannelSearchTimeoutMessageTest(unittest.TestCase):
     def test_payload(self):
         self.message.channelNumber = 0x01
         self.message.timeout = 0x02
-        self.assertEquals(self.message.payload, '\x01\x02')
+        self.assertEquals(self.message.payload, b'\x01\x02')
 
 
 class ChannelFrequencyMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = ChannelFrequencyMessage()
+        self.message = msg.ChannelFrequencyMessage()
 
     def test_get_setFrequency(self):
         self.message.frequency = 22
@@ -184,12 +189,12 @@ class ChannelFrequencyMessageTest(unittest.TestCase):
     def test_payload(self):
         self.message.channelNumber = 0x01
         self.message.frequency = 0x02
-        self.assertEquals(self.message.payload, '\x01\x02')
+        self.assertEquals(self.message.payload, b'\x01\x02')
 
 
 class ChannelTXPowerMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = ChannelTXPowerMessage()
+        self.message = msg.ChannelTXPowerMessage()
 
     def test_get_setPower(self):
         self.message.power = 0xFA
@@ -198,31 +203,31 @@ class ChannelTXPowerMessageTest(unittest.TestCase):
     def test_payload(self):
         self.message.channelNumber = 0x01
         self.message.power = 0x02
-        self.assertEquals(self.message.payload, '\x01\x02')
+        self.assertEquals(self.message.payload, b'\x01\x02')
 
 
 class NetworkKeyMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = NetworkKeyMessage()
+        self.message = msg.NetworkKeyMessage()
 
     def test_get_setNumber(self):
         self.message.number = 0xFA
         self.assertEquals(self.message.number, 0xFA)
 
     def test_get_setKey(self):
-        self.message.key = '\xFD' * 8
-        self.assertEquals(self.message.key, '\xFD' * 8)
+        self.message.key = b'\xFD' * 8
+        self.assertEquals(self.message.key, b'\xFD' * 8)
 
     def test_payload(self):
         self.message.number = 0x01
-        self.message.key = '\x02\x03\x04\x05\x06\x07\x08\x09'
+        self.message.key = b'\x02\x03\x04\x05\x06\x07\x08\x09'
         self.assertEquals(self.message.payload,
-                          '\x01\x02\x03\x04\x05\x06\x07\x08\x09')
+                          b'\x01\x02\x03\x04\x05\x06\x07\x08\x09')
 
 
 class TXPowerMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = TXPowerMessage()
+        self.message = msg.TXPowerMessage()
 
     def test_get_setPower(self):
         self.message.power = 0xFA
@@ -230,7 +235,7 @@ class TXPowerMessageTest(unittest.TestCase):
 
     def test_payload(self):
         self.message.power = 0x01
-        self.assertEquals(self.message.payload, '\x00\x01')
+        self.assertEquals(self.message.payload, b'\x00\x01')
 
 
 class SystemResetMessageTest(unittest.TestCase):
@@ -250,7 +255,7 @@ class ChannelCloseMessageTest(unittest.TestCase):
 
 class ChannelRequestMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = ChannelRequestMessage()
+        self.message = msg.ChannelRequestMessage()
 
     def test_get_messageID(self):
         with self.assertRaises(MessageError):
@@ -261,7 +266,7 @@ class ChannelRequestMessageTest(unittest.TestCase):
     def test_payload(self):
         self.message.channelNumber = 0x01
         self.message.messageID = 0x02
-        self.assertEquals(self.message.payload, '\x01\x02')
+        self.assertEquals(self.message.payload, b'\x01\x02')
 
 
 class ChannelBroadcastDataMessageTest(unittest.TestCase):
@@ -281,7 +286,7 @@ class ChannelBurstDataMessageTest(unittest.TestCase):
 
 class ChannelEventMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = ChannelEventMessage()
+        self.message = msg.ChannelEventMessage()
 
     def test_get_messageID(self):
         with self.assertRaises(MessageError):
@@ -299,12 +304,12 @@ class ChannelEventMessageTest(unittest.TestCase):
         self.message.channelNumber = 0x01
         self.message.messageID = 0x02
         self.message.messageCode = 0x03
-        self.assertEquals(self.message.payload, '\x01\x02\x03')
+        self.assertEquals(self.message.payload, b'\x01\x02\x03')
 
 
 class ChannelStatusMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = ChannelStatusMessage()
+        self.message = msg.ChannelStatusMessage()
 
     def test_get_status(self):
         with self.assertRaises(MessageError):
@@ -315,27 +320,27 @@ class ChannelStatusMessageTest(unittest.TestCase):
     def test_payload(self):
         self.message.channelNumber = 0x01
         self.message.status = 0x02
-        self.assertEquals(self.message.payload, '\x01\x02')
+        self.assertEquals(self.message.payload, b'\x01\x02')
 
 
 class VersionMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = VersionMessage()
+        self.message = msg.VersionMessage()
 
     def test_get_version(self):
         with self.assertRaises(MessageError):
             self.message.version =  '1234'
-        self.message.version = '\xAB' * 9
-        self.assertEquals(self.message.version, '\xAB' * 9)
+        self.message.version = b'\xAB' * 9
+        self.assertEquals(self.message.version, b'\xAB' * 9)
 
     def test_payload(self):
-        self.message.version = '\x01' * 9
-        self.assertEquals(self.message.payload, '\x01' * 9)
+        self.message.version = b'\x01' * 9
+        self.assertEquals(self.message.payload, b'\x01' * 9)
 
 
 class CapabilitiesMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = CapabilitiesMessage()
+        self.message = msg.CapabilitiesMessage()
 
     def test_get_maxChannels(self):
         with self.assertRaises(MessageError):
@@ -366,7 +371,7 @@ class CapabilitiesMessageTest(unittest.TestCase):
             self.message.advOptions2 = 0xFFFF
         self.message.advOptions2 = 0xFA
         self.assertEquals(self.message.advOptions2, 0xFA)
-        self.message = CapabilitiesMessage(adv_opts2=None)
+        self.message = msg.CapabilitiesMessage(adv_opts2=None)
         self.assertEquals(len(self.message.payload), 4)
 
     def test_payload(self):
@@ -375,19 +380,19 @@ class CapabilitiesMessageTest(unittest.TestCase):
         self.message.stdOptions = 0x03
         self.message.advOptions = 0x04
         self.message.advOptions2 = 0x05
-        self.assertEquals(self.message.payload, '\x01\x02\x03\x04\x05')
+        self.assertEquals(self.message.payload, b'\x01\x02\x03\x04\x05')
 
 
 class SerialNumberMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = SerialNumberMessage()
+        self.message = msg.SerialNumberMessage()
 
     def test_get_serialNumber(self):
         with self.assertRaises(MessageError):
-            self.message.serialNumber = '\xFF' * 8
-        self.message.serialNumber = '\xFA\xFB\xFC\xFD'
-        self.assertEquals(self.message.serialNumber, '\xFA\xFB\xFC\xFD')
+            self.message.serialNumber = b'\xFF' * 8
+        self.message.serialNumber = b'\xFA\xFB\xFC\xFD'
+        self.assertEquals(self.message.serialNumber, b'\xFA\xFB\xFC\xFD')
 
     def test_payload(self):
-        self.message.serialNumber = '\x01\x02\x03\x04'
-        self.assertEquals(self.message.payload, '\x01\x02\x03\x04')
+        self.message.serialNumber = b'\x01\x02\x03\x04'
+        self.assertEquals(self.message.payload, b'\x01\x02\x03\x04')

@@ -24,6 +24,8 @@
 #
 ##############################################################################
 
+from __future__ import division, absolute_import, print_function, unicode_literals
+
 import thread
 
 # USB1 driver uses a USB<->Serial bridge
@@ -105,17 +107,17 @@ class Driver(object):
         if len(data) == 0:
             return
 
-        print '========== [{0}] =========='.format(title)
+        print("========== [{0}] ==========".format(title))
 
         length = 8
         line = 0
         while data:
             row = data[:length]
             data = data[length:]
-            hex_data = ['%02X' % ord(byte) for byte in row]
-            print '%04X' % line, ' '.join(hex_data)
+            hex_data = [b'%02X' % ord(byte) for byte in row]
+            print(b'%04X' % line, b' '.join(hex_data))
 
-        print ''
+        print()
 
     def _open(self):
         raise DriverError("Not Implemented")
@@ -142,7 +144,7 @@ class USB1Driver(Driver):
             raise DriverError(str(e))
 
         if not dev.isOpen():
-            raise DriverError('Could not open device')
+            raise DriverError("Could not open device")
 
         self._serial = dev
         self._serial.timeout = 0.01
@@ -169,7 +171,7 @@ class USB2Driver(Driver):
         dev = usb.core.find(idVendor=0x0fcf, idProduct=0x1008)
 
         if dev is None:
-            raise DriverError('Could not open device (not found)')
+            raise DriverError("Could not open device (not found)")
 
         # make sure the kernel driver is not active
         if dev.is_kernel_driver_active(0):
@@ -212,7 +214,7 @@ class USB2Driver(Driver):
         usb.util.release_interface(self._dev, self._int)
 
     def _read(self, count):
-        arr_inp = array('B')
+        arr_inp = array(b'B')
         try:
             arr_inp = self._ep_in.read(count)
         except usb.core.USBError:

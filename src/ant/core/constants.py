@@ -24,6 +24,8 @@
 #
 ##############################################################################
 
+from __future__ import division, absolute_import, print_function, unicode_literals
+
 MESSAGE_TX_SYNC = 0xA4
 
 # Configuration messages

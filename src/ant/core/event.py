@@ -28,8 +28,7 @@
 # don't-fix-it-if-it-ain't-broken kind of threaded code ahead.
 #
 
-MAX_ACK_QUEUE = 25
-MAX_MSG_QUEUE = 25
+from __future__ import division, absolute_import, print_function, unicode_literals
 
 from time import sleep
 from threading import Lock, Thread
@@ -37,6 +36,9 @@ from threading import Lock, Thread
 from ant.core.constants import MESSAGE_TX_SYNC
 from ant.core.message import Message, ChannelEventMessage
 from ant.core.exceptions import MessageError
+
+MAX_ACK_QUEUE = 25
+MAX_MSG_QUEUE = 25
 
 
 def ProcessBuffer(buffer_):
@@ -64,7 +66,7 @@ def EventPump(evm):
     with evm.pump_lock:
         evm.pump = True
     
-    buffer_ = ''
+    buffer_ = b''
     while True:
         with evm.running_lock:
             if not evm.running:

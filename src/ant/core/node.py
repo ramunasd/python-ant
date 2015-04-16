@@ -24,6 +24,8 @@
 #
 ##############################################################################
 
+from __future__ import division, absolute_import, print_function, unicode_literals
+
 import thread
 import uuid
 
@@ -35,7 +37,7 @@ from ant.core import event
 
 
 class NetworkKey(object):
-    def __init__(self, name=None, key='\x00' * 8):
+    def __init__(self, name=None, key=b'\x00' * 8):
         self.key = key
         if name:
             self.name = name
@@ -134,11 +136,12 @@ class Channel(event.EventCallback):
                 for callback in self.cb:
                     try:
                         callback.process(msg)
-                    except Exception as err:
+                    except Exception as err:  # pylint: disable=broad-except
                         print(err)
 
 
 class Node(event.EventCallback):
+    # pylint: disable=abstract-class-not-used
     node_lock = thread.allocate_lock()
 
     def __init__(self, driver):
@@ -221,4 +224,4 @@ class Node(event.EventCallback):
         self.evm.registerCallback(callback)
 
     def process(self, msg):
-        pass
+        raise NotImplementedError()

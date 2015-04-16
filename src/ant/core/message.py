@@ -24,6 +24,8 @@
 ##############################################################################
 # pylint: disable=missing-docstring,invalid-name
 
+from __future__ import division, absolute_import, print_function, unicode_literals
+
 import struct
 
 from ant.core import constants
@@ -120,7 +122,7 @@ class Message(object):
 
 
 class ChannelMessage(Message):
-    def __init__(self, type_=None, payload='', number=0x00):
+    def __init__(self, type_=None, payload=b'', number=0x00):
         super(ChannelMessage, self).__init__(type_, bytearray(1) + payload)
         self.channelNumber = number
     
@@ -178,10 +180,10 @@ class ChannelIDMessage(ChannelMessage):
     
     @property
     def deviceNumber(self):
-        return struct.unpack('<H', str(self._payload[1:3]))[0]
+        return struct.unpack(b'<H', str(self._payload[1:3]))[0]
     @deviceNumber.setter
     def deviceNumber(self, device_number):
-        self._payload[1:3] = struct.pack('<H', device_number)
+        self._payload[1:3] = struct.pack(b'<H', device_number)
     
     @property
     def deviceType(self):
@@ -262,7 +264,7 @@ class ChannelTXPowerMessage(ChannelMessage):
 class NetworkKeyMessage(Message):
     type = constants.MESSAGE_NETWORK_KEY
     
-    def __init__(self, number=0x00, key='\x00' * 8):
+    def __init__(self, number=0x00, key=b'\x00' * 8):
         super(NetworkKeyMessage, self).__init__(payload=bytearray(9))
         self.number = number
         self.key = key
@@ -345,21 +347,21 @@ class RequestMessage(ChannelRequestMessage):
 class ChannelBroadcastDataMessage(ChannelMessage):
     type = constants.MESSAGE_CHANNEL_BROADCAST_DATA
     
-    def __init__(self, number=0x00, data='\x00' * 7):
+    def __init__(self, number=0x00, data=b'\x00' * 7):
         super(ChannelBroadcastDataMessage, self).__init__(payload=data, number=number)
 
 
 class ChannelAcknowledgedDataMessage(ChannelMessage):
     type = constants.MESSAGE_CHANNEL_ACKNOWLEDGED_DATA
     
-    def __init__(self, number=0x00, data='\x00' * 7):
+    def __init__(self, number=0x00, data=b'\x00' * 7):
         super(ChannelAcknowledgedDataMessage, self).__init__(payload=data, number=number)
 
 
 class ChannelBurstDataMessage(ChannelMessage):
     type = constants.MESSAGE_CHANNEL_BURST_DATA
     
-    def __init__(self, number=0x00, data='\x00' * 7):
+    def __init__(self, number=0x00, data=b'\x00' * 7):
         super(ChannelBurstDataMessage, self).__init__(payload=data, number=number)
 
 
@@ -415,7 +417,7 @@ class ChannelStatusMessage(ChannelMessage):
 class VersionMessage(Message):
     type = constants.MESSAGE_VERSION
     
-    def __init__(self, version='\x00' * 9):
+    def __init__(self, version=b'\x00' * 9):
         super(VersionMessage, self).__init__(payload=bytearray(9))
         self.version = version
     
@@ -504,14 +506,14 @@ class CapabilitiesMessage(Message):
         if (num > 0xFF) or (num < 0x00):
             raise MessageError('Could not set adv options 2 (out of range).')
         if len(self._payload) == 4:
-            self._payload.append('\x00')
+            self._payload.append(b'\x00')
         self._payload[4] = num
 
 
 class SerialNumberMessage(Message):
     type = constants.MESSAGE_SERIAL_NUMBER
     
-    def __init__(self, serial='\x00' * 4):
+    def __init__(self, serial=b'\x00' * 4):
         super(SerialNumberMessage, self).__init__()
         self.serialNumber = serial
     

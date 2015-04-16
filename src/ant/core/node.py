@@ -111,7 +111,7 @@ class Channel(event.EventCallback):
 
         while True:
             msg = self.node.evm.waitForMessage(message.ChannelEventMessage)
-            if msg.getMessageCode() == EVENT_CHANNEL_CLOSED:
+            if msg.messageCode == EVENT_CHANNEL_CLOSED:
                 break
 
     def unassign(self):

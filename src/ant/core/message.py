@@ -324,12 +324,13 @@ class ChannelRequestMessage(ChannelMessage):
     
     def __init__(self, number=0x00, message_id=constants.MESSAGE_CHANNEL_STATUS):
         super(ChannelRequestMessage, self).__init__(payload=bytearray(1), number=number)
-        self.setMessageID(message_id)
+        self.messageID = message_id
     
-    def getMessageID(self):
+    @property
+    def messageID(self):
         return self._payload[1]
-    
-    def setMessageID(self, message_id):
+    @messageID.setter
+    def messageID(self, message_id):
         if (message_id > 0xFF) or (message_id < 0x00):
             raise MessageError('Could not set message ID (out of range).')
         
@@ -368,22 +369,24 @@ class ChannelEventMessage(ChannelMessage):
     
     def __init__(self, number=0x00, message_id=0x00, message_code=0x00):
         super(ChannelEventMessage, self).__init__(payload=bytearray(2), number=number)
-        self.setMessageID(message_id)
-        self.setMessageCode(message_code)
+        self.messageID = message_id
+        self.messageCode = message_code
     
-    def getMessageID(self):
+    @property
+    def messageID(self):
         return self._payload[1]
-    
-    def setMessageID(self, message_id):
+    @messageID.setter
+    def messageID(self, message_id):
         if (message_id > 0xFF) or (message_id < 0x00):
             raise MessageError('Could not set message ID (out of range).')
         
         self._payload[1] = message_id
     
-    def getMessageCode(self):
+    @property
+    def messageCode(self):
         return self._payload[2]
-    
-    def setMessageCode(self, message_code):
+    @messageCode.setter
+    def messageCode(self, message_code):
         if (message_code > 0xFF) or (message_code < 0x00):
             raise MessageError('Could not set message code (out of range).')
         

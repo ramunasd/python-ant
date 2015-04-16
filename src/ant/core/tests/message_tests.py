@@ -252,14 +252,15 @@ class ChannelRequestMessageTest(unittest.TestCase):
     def setUp(self):
         self.message = ChannelRequestMessage()
 
-    def test_get_setMessageID(self):
-        self.message.setMessageID(0xFA)
-        self.assertEquals(self.message.getMessageID(), 0xFA)
-        self.assertRaises(MessageError, self.message.setMessageID, 0xFFFF)
+    def test_get_messageID(self):
+        with self.assertRaises(MessageError):
+            self.message.messageID = 0xFFFF
+        self.message.messageID = 0xFA
+        self.assertEquals(self.message.messageID, 0xFA)
 
     def test_payload(self):
         self.message.channelNumber = 0x01
-        self.message.setMessageID(0x02)
+        self.message.messageID = 0x02
         self.assertEquals(self.message.payload, '\x01\x02')
 
 
@@ -282,20 +283,22 @@ class ChannelEventMessageTest(unittest.TestCase):
     def setUp(self):
         self.message = ChannelEventMessage()
 
-    def test_get_setMessageID(self):
-        self.message.setMessageID(0xFA)
-        self.assertEquals(self.message.getMessageID(), 0xFA)
-        self.assertRaises(MessageError, self.message.setMessageID, 0xFFFF)
+    def test_get_messageID(self):
+        with self.assertRaises(MessageError):
+            self.message.messageID = 0xFFFF
+        self.message.messageID = 0xFA
+        self.assertEquals(self.message.messageID, 0xFA)
 
-    def test_get_setMessageCode(self):
-        self.message.setMessageCode(0xFA)
-        self.assertEquals(self.message.getMessageCode(), 0xFA)
-        self.assertRaises(MessageError, self.message.setMessageCode, 0xFFFF)
+    def test_get_messageCode(self):
+        with self.assertRaises(MessageError):
+            self.message.messageCode = 0xFFFF
+        self.message.messageCode = 0xFA
+        self.assertEquals(self.message.messageCode, 0xFA)
 
     def test_payload(self):
         self.message.channelNumber = 0x01
-        self.message.setMessageID(0x02)
-        self.message.setMessageCode(0x03)
+        self.message.messageID = 0x02
+        self.message.messageCode = 0x03
         self.assertEquals(self.message.payload, '\x01\x02\x03')
 
 

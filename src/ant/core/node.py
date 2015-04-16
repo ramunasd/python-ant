@@ -26,8 +26,8 @@
 
 from __future__ import division, absolute_import, print_function, unicode_literals
 
-import thread
-import uuid
+from uuid import uuid4
+from threading import Lock
 
 from ant.core.constants import (RESPONSE_NO_ERROR, EVENT_CHANNEL_CLOSED,
                                 MESSAGE_CAPABILITIES)
@@ -42,19 +42,18 @@ class NetworkKey(object):
         if name:
             self.name = name
         else:
-            self.name = str(uuid.uuid4())
+            self.name = str(uuid4())
         self.number = 0
 
 
 class Channel(event.EventCallback):
-    cb_lock = thread.allocate_lock()
-
     def __init__(self, node, number=0):
         self.node = node
         self.is_free = True
-        self.name = str(uuid.uuid4())
+        self.name = str(uuid4())
         self.number = number
         self.cb = []
+        self.cb_lock = Lock()
         self.node.evm.registerCallback(self)
 
     def __del__(self):
@@ -142,7 +141,6 @@ class Channel(event.EventCallback):
 
 class Node(event.EventCallback):
     # pylint: disable=abstract-class-not-used
-    node_lock = thread.allocate_lock()
 
     def __init__(self, driver):
         self.driver = driver
@@ -222,6 +220,3 @@ class Node(event.EventCallback):
 
     def registerEventListener(self, callback):
         self.evm.registerCallback(callback)
-
-    def process(self, msg):
-        raise NotImplementedError()

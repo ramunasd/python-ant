@@ -26,7 +26,7 @@
 
 from __future__ import division, absolute_import, print_function, unicode_literals
 
-import thread
+from threading import Lock
 
 # USB1 driver uses a USB<->Serial bridge
 import serial
@@ -37,17 +37,16 @@ import usb.control
 
 from ant.core.exceptions import DriverError
 
-from array import *
+from array import array
 
 
 class Driver(object):
-    _lock = thread.allocate_lock()
-
     def __init__(self, device, log=None, debug=False):
         self.device = device
         self.debug = debug
         self.log = log
         self.is_open = False
+        self._lock = Lock()
 
     def isOpen(self):
         with self._lock:
@@ -214,12 +213,11 @@ class USB2Driver(Driver):
         usb.util.release_interface(self._dev, self._int)
 
     def _read(self, count):
-        arr_inp = array(b'B')
         try:
             arr_inp = self._ep_in.read(count)
         except usb.core.USBError:
             # Timeout errors seem to occasionally be expected
-            pass
+            arr_inp = array(b'B')
 
         return arr_inp.tostring()
 

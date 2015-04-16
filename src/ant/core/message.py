@@ -26,7 +26,7 @@
 
 from __future__ import division, absolute_import, print_function, unicode_literals
 
-import struct
+from struct import pack, unpack
 
 from ant.core import constants
 from ant.core.constants import MESSAGE_TX_SYNC
@@ -180,10 +180,10 @@ class ChannelIDMessage(ChannelMessage):
     
     @property
     def deviceNumber(self):
-        return struct.unpack(b'<H', str(self._payload[1:3]))[0]
+        return unpack(b'<H', str(self._payload[1:3]))[0]
     @deviceNumber.setter
     def deviceNumber(self, device_number):
-        self._payload[1:3] = struct.pack(b'<H', device_number)
+        self._payload[1:3] = pack(b'<H', device_number)
     
     @property
     def deviceType(self):
@@ -209,10 +209,10 @@ class ChannelPeriodMessage(ChannelMessage):
     
     @property
     def channelPeriod(self):
-        return struct.unpack('<H', str(self._payload[1:3]))[0]
+        return unpack('<H', str(self._payload[1:3]))[0]
     @channelPeriod.setter
     def channelPeriod(self, period):
-        self._payload[1:3] = struct.pack('<H', period)
+        self._payload[1:3] = pack('<H', period)
 
 
 class ChannelSearchTimeoutMessage(ChannelMessage):

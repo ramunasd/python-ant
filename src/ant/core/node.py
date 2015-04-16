@@ -186,16 +186,14 @@ class Node(event.EventCallback):
         caps = self.evm.waitForMessage(message.CapabilitiesMessage)
 
         self.networks = []
-        for i in range(0, caps.getMaxNetworks()):
+        for i in range(0, caps.maxNetworks):
             self.networks.append(NetworkKey())
             self.setNetworkKey(i)
-        self.channels = []
-        for i in range(0, caps.getMaxChannels()):
-            self.channels.append(Channel(self))
-            self.channels[i].number = i
-        self.options = (caps.getStdOptions(),
-                        caps.getAdvOptions(),
-                        caps.getAdvOptions2(),)
+        channels = self.channels = []
+        for i in range(0, caps.maxChannels):
+            channels.append(Channel(self))
+            channels[i].number = i
+        self.options = (caps.stdOptions, caps.advOptions, caps.advOptions2)
 
     def getCapabilities(self):
         return (len(self.channels), len(self.networks), self.options)

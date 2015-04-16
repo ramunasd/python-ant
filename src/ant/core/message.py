@@ -452,50 +452,55 @@ class CapabilitiesMessage(Message):
     def __init__(self, max_channels=0x00, max_nets=0x00, std_opts=0x00,
                  adv_opts=0x00, adv_opts2=0x00):
         super(CapabilitiesMessage, self).__init__(payload=bytearray(4))
-        self.setMaxChannels(max_channels)
-        self.setMaxNetworks(max_nets)
-        self.setStdOptions(std_opts)
-        self.setAdvOptions(adv_opts)
+        self.maxChannels = max_channels
+        self.maxNetworks = max_nets
+        self.stdOptions = std_opts
+        self.advOptions = adv_opts
         if adv_opts2 is not None:
-            self.setAdvOptions2(adv_opts2)
+            self.advOptions2 = adv_opts2
     
-    def getMaxChannels(self):
+    @property
+    def maxChannels(self):
         return self._payload[0]
-    
-    def getMaxNetworks(self):
-        return self._payload[1]
-    
-    def getStdOptions(self):
-        return self._payload[2]
-    
-    def getAdvOptions(self):
-        return self._payload[3]
-    
-    def getAdvOptions2(self):
-        return self._payload[4] if len(self._payload) == 5 else 0x00
-    
-    def setMaxChannels(self, num):
+    @maxChannels.setter
+    def maxChannels(self, num):
         if (num > 0xFF) or (num < 0x00):
             raise MessageError('Could not set max channels ' \
                                    '(out of range).')
         self._payload[0] = num
     
-    def setMaxNetworks(self, num):
+    @property
+    def maxNetworks(self):
+        return self._payload[1]
+    @maxNetworks.setter
+    def maxNetworks(self, num):
         if (num > 0xFF) or (num < 0x00):
             raise MessageError('Could not set max networks (out of range).')
         self._payload[1] = num
     
-    def setStdOptions(self, num):
+    @property
+    def stdOptions(self):
+        return self._payload[2]
+    @stdOptions.setter
+    def stdOptions(self, num):
         if (num > 0xFF) or (num < 0x00):
             raise MessageError('Could not set std options (out of range).')
         self._payload[2] = num
     
-    def setAdvOptions(self, num):
+    @property
+    def advOptions(self):
+        return self._payload[3]
+    @advOptions.setter
+    def advOptions(self, num):
         if (num > 0xFF) or (num < 0x00):
             raise MessageError('Could not set adv options (out of range).')
         self._payload[3] = num
     
-    def setAdvOptions2(self, num):
+    @property
+    def advOptions2(self):
+        return self._payload[4] if len(self._payload) == 5 else 0x00
+    @advOptions2.setter
+    def advOptions2(self, num):
         if (num > 0xFF) or (num < 0x00):
             raise MessageError('Could not set adv options 2 (out of range).')
         if len(self._payload) == 4:

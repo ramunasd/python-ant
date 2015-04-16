@@ -337,39 +337,44 @@ class CapabilitiesMessageTest(unittest.TestCase):
     def setUp(self):
         self.message = CapabilitiesMessage()
 
-    def test_get_setMaxChannels(self):
-        self.message.setMaxChannels(0xFA)
-        self.assertEquals(self.message.getMaxChannels(), 0xFA)
-        self.assertRaises(MessageError, self.message.setMaxChannels, 0xFFFF)
+    def test_get_maxChannels(self):
+        with self.assertRaises(MessageError):
+            self.message.maxChannels = 0xFFFF
+        self.message.maxChannels = 0xFA
+        self.assertEquals(self.message.maxChannels, 0xFA)
 
-    def test_get_setMaxNetworks(self):
-        self.message.setMaxNetworks(0xFA)
-        self.assertEquals(self.message.getMaxNetworks(), 0xFA)
-        self.assertRaises(MessageError, self.message.setMaxNetworks, 0xFFFF)
+    def test_get_maxNetworks(self):
+        with self.assertRaises(MessageError):
+            self.message.maxNetworks = 0xFFFF
+        self.message.maxNetworks = 0xFA
+        self.assertEquals(self.message.maxNetworks, 0xFA)
 
-    def test_get_setStdOptions(self):
-        self.message.setStdOptions(0xFA)
-        self.assertEquals(self.message.getStdOptions(), 0xFA)
-        self.assertRaises(MessageError, self.message.setStdOptions, 0xFFFF)
+    def test_get_stdOptions(self):
+        with self.assertRaises(MessageError):
+            self.message.stdOptions = 0xFFFF
+        self.message.stdOptions = 0xFA
+        self.assertEquals(self.message.stdOptions, 0xFA)
 
-    def test_get_setAdvOptions(self):
-        self.message.setAdvOptions(0xFA)
-        self.assertEquals(self.message.getAdvOptions(), 0xFA)
-        self.assertRaises(MessageError, self.message.setAdvOptions, 0xFFFF)
+    def test_get_advOptions(self):
+        with self.assertRaises(MessageError):
+            self.message.advOptions = 0xFFFF
+        self.message.advOptions = 0xFA
+        self.assertEquals(self.message.advOptions, 0xFA)
 
-    def test_get_setAdvOptions2(self):
-        self.message.setAdvOptions2(0xFA)
-        self.assertEquals(self.message.getAdvOptions2(), 0xFA)
-        self.assertRaises(MessageError, self.message.setAdvOptions2, 0xFFFF)
+    def test_get_advOptions2(self):
+        with self.assertRaises(MessageError):
+            self.message.advOptions2 = 0xFFFF
+        self.message.advOptions2 = 0xFA
+        self.assertEquals(self.message.advOptions2, 0xFA)
         self.message = CapabilitiesMessage(adv_opts2=None)
         self.assertEquals(len(self.message.payload), 4)
 
     def test_payload(self):
-        self.message.setMaxChannels(0x01)
-        self.message.setMaxNetworks(0x02)
-        self.message.setStdOptions(0x03)
-        self.message.setAdvOptions(0x04)
-        self.message.setAdvOptions2(0x05)
+        self.message.maxChannels = 0x01
+        self.message.maxNetworks = 0x02
+        self.message.stdOptions = 0x03
+        self.message.advOptions = 0x04
+        self.message.advOptions2 = 0x05
         self.assertEquals(self.message.payload, '\x01\x02\x03\x04\x05')
 
 

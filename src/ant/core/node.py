@@ -55,10 +55,10 @@ class Channel(event.EventCallback):
         self.cb = []
         self.cb_lock = Lock()
         self.node.evm.registerCallback(self)
-
+    
     def __del__(self):
         self.node.evm.removeCallback(self)
-
+    
     def assign(self, net_key, ch_type):
         msg = message.ChannelAssignMessage(self.number, ch_type,
                                            self.node.getNetworkKey(net_key).number)
@@ -67,54 +67,54 @@ class Channel(event.EventCallback):
         if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not assign channel.')
         self.is_free = False
-
+    
     def setID(self, dev_type, dev_num, trans_type):
         msg = message.ChannelIDMessage(self.number, dev_num, dev_type, trans_type)
         node = self.node
         node.driver.write(msg.encode())
         if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not set channel ID.')
-
+    
     def setSearchTimeout(self, timeout):
         msg = message.ChannelSearchTimeoutMessage(self.number, timeout)
         node = self.node
         node.driver.write(msg.encode())
         if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not set channel search timeout.')
-
+    
     def setPeriod(self, counts):
         msg = message.ChannelPeriodMessage(self.number, counts)
         node = self.node
         node.driver.write(msg.encode())
         if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not set channel period.')
-
+    
     def setFrequency(self, frequency):
         msg = message.ChannelFrequencyMessage(self.number, frequency)
         node = self.node
         node.driver.write(msg.encode())
         if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not set channel frequency.')
-
+    
     def open(self):
         msg = message.ChannelOpenMessage(number=self.number)
         node = self.node
         node.driver.write(msg.encode())
         if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not open channel.')
-
+    
     def close(self):
         msg = message.ChannelCloseMessage(number=self.number)
         node = self.node
         node.driver.write(msg.encode())
         if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not close channel.')
-
+        
         while True:
             msg = self.node.evm.waitForMessage(message.ChannelEventMessage)
             if msg.messageCode == EVENT_CHANNEL_CLOSED:
                 break
-
+    
     def unassign(self):
         msg = message.ChannelUnassignMessage(number=self.number)
         node = self.node
@@ -122,12 +122,12 @@ class Channel(event.EventCallback):
         if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not unassign channel.')
         self.is_free = True
-
+    
     def registerCallback(self, callback):
         with self.cb_lock:
             if callback not in self.cb:
                 self.cb.append(callback)
-
+    
     def process(self, msg):
         with self.cb_lock:
             if isinstance(msg, message.ChannelMessage) and \
@@ -150,14 +150,14 @@ class Node(event.EventCallback):
         self.channels = []
         self.running = False
         self.options = [0x00, 0x00, 0x00]
-
+    
     def start(self):
         if self.running:
             raise NodeError('Could not start ANT node (already started).')
-
+        
         if not self.driver.isOpen():
             self.driver.open()
-
+        
         self.evm.start()
         self.reset()
         self.running = True
@@ -166,24 +166,24 @@ class Node(event.EventCallback):
     def stop(self, reset=True):
         if not self.running:
             raise NodeError('Could not stop ANT node (not started).')
-
+        
         if reset:
             self.reset()
         self.evm.stop()
         self.running = False
         self.driver.close()
-
+    
     def reset(self):
         self.driver.write(message.SystemResetMessage().encode())
         self.evm.waitForMessage(message.StartupMessage)
-
+    
     def init(self):
         if not self.running:
             raise NodeError('Could not reset ANT node (not started).')
-
+        
         msg = message.ChannelRequestMessage(message_id=MESSAGE_CAPABILITIES)
         self.driver.write(msg.encode())
-
+        
         caps = self.evm.waitForMessage(message.CapabilitiesMessage)
         self.networks = []
         for i in range(0, caps.maxNetworks):
@@ -191,10 +191,10 @@ class Node(event.EventCallback):
             self.setNetworkKey(i)
         self.channels = [ Channel(self, i) for i in xrange(0, caps.maxChannels) ]
         self.options = (caps.stdOptions, caps.advOptions, caps.advOptions2)
-
+    
     def getCapabilities(self):
         return (len(self.channels), len(self.networks), self.options)
-
+    
     def setNetworkKey(self, number, key=None):
         networks = self.networks
         if key is not None:
@@ -205,18 +205,18 @@ class Node(event.EventCallback):
         self.driver.write(msg.encode())
         self.evm.waitForAck(msg)
         network.number = number
-
+    
     def getNetworkKey(self, name):
         for netkey in self.networks:
             if netkey.name == name:
                 return netkey
         raise NodeError('Could not find network key with the supplied name.')
-
+    
     def getFreeChannel(self):
         for channel in self.channels:
             if channel.is_free:
                 return channel
         raise NodeError('Could not find free channel.')
-
+    
     def registerEventListener(self, callback):
         self.evm.registerCallback(callback)

@@ -41,6 +41,7 @@ from array import array
 
 
 class Driver(object):
+
     def __init__(self, device, log=None, debug=False):
         self.device = device
         self.debug = debug
@@ -51,63 +52,63 @@ class Driver(object):
     def isOpen(self):
         with self._lock:
             return self.is_open
-
+    
     def open(self):
         with self._lock:
             if self.is_open:
                 raise DriverError("Could not open device (already open).")
-
+            
             self._open()
             self.is_open = True
             if self.log:
                 self.log.logOpen()
-
+    
     def close(self):
         with self._lock:
             if not self.is_open:
                 raise DriverError("Could not close device (not open).")
-
+            
             self._close()
             self.is_open = False
             if self.log:
                 self.log.logClose()
-
+    
     def read(self, count):
         with self._lock:
             if not self.is_open:
                 raise DriverError("Could not read from device (not open).")
             if count <= 0:
                 raise DriverError("Could not read from device (zero request).")
-
+            
             data = self._read(count)
             if self.log:
                 self.log.logRead(data)
-
+            
             if self.debug:
                 self._dump(data, 'READ')
         return data
-
+    
     def write(self, data):
         with self._lock:
             if not self.is_open:
                 raise DriverError("Could not write to device (not open).")
             if len(data) <= 0:
                 raise DriverError("Could not write to device (no data).")
-
+            
             if self.debug:
                 self._dump(data, 'WRITE')
-
+            
             ret = self._write(data)
             if self.log:
                 self.log.logWrite(data[0:ret])
         return ret
-
+    
     def _dump(self, data, title):
         if len(data) == 0:
             return
-
+        
         print("========== [{0}] ==========".format(title))
-
+        
         length = 8
         line = 0
         while data:
@@ -115,18 +116,18 @@ class Driver(object):
             data = data[length:]
             hex_data = [b'%02X' % ord(byte) for byte in row]
             print(b'%04X' % line, b' '.join(hex_data))
-
+        
         print()
-
+    
     def _open(self):
         raise DriverError("Not Implemented")
-
+    
     def _close(self):
         raise DriverError("Not Implemented")
-
+    
     def _read(self, count):
         raise DriverError("Not Implemented")
-
+    
     def _write(self, data):
         raise DriverError("Not Implemented")
 
@@ -135,25 +136,25 @@ class USB1Driver(Driver):
     def __init__(self, device, baud_rate=115200, log=None, debug=False):
         Driver.__init__(self, device, log, debug)
         self.baud = baud_rate
-
+    
     def _open(self):
         try:
             dev = serial.Serial(self.device, self.baud)
         except serial.SerialException, e:
             raise DriverError(str(e))
-
+        
         if not dev.isOpen():
             raise DriverError("Could not open device")
-
+        
         self._serial = dev
         self._serial.timeout = 0.01
-
+    
     def _close(self):
         self._serial.close()
-
+    
     def _read(self, count):
         return self._serial.read(count)
-
+    
     def _write(self, data):
         try:
             count = self._serial.write(data)
@@ -168,17 +169,17 @@ class USB2Driver(Driver):
     def _open(self):
         # Most of this is straight from the PyUSB example documentation		
         dev = usb.core.find(idVendor=0x0fcf, idProduct=0x1008)
-
+        
         if dev is None:
             raise DriverError("Could not open device (not found)")
-
+        
         # make sure the kernel driver is not active
         if dev.is_kernel_driver_active(0):
             try:
                 dev.detach_kernel_driver(0)
             except usb.core.USBError as e:
                 exit("could not detach kernel driver: {}".format(e))
-
+        
         dev.set_configuration()
         cfg = dev.get_active_configuration()
         interface_number = cfg[(0,0)].bInterfaceNumber
@@ -208,20 +209,17 @@ class USB2Driver(Driver):
         self._ep_in = ep_in
         self._dev = dev
         self._int = interface_number
-
+    
     def _close(self):
         usb.util.release_interface(self._dev, self._int)
-
+    
     def _read(self, count):
         try:
             arr_inp = self._ep_in.read(count)
         except usb.core.USBError:
             # Timeout errors seem to occasionally be expected
             arr_inp = array(b'B')
-
         return arr_inp.tostring()
-
+    
     def _write(self, data):
-        count = self._ep_out.write(data)
-
-        return count
+        return self._ep_out.write(data)

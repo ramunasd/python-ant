@@ -59,11 +59,11 @@ class Channel(event.EventCallback):
         self.node.evm.removeCallback(self)
 
     def assign(self, net_key, ch_type):
-        msg = message.ChannelAssignMessage(number=self.number)
-        msg.networkNumber = self.node.getNetworkKey(net_key).number
-        msg.channelType = ch_type
-        self.node.driver.write(msg.encode())
-        if self.node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
+        msg = message.ChannelAssignMessage(self.number, ch_type,
+                                           self.node.getNetworkKey(net_key).number)
+        node = self.node
+        node.driver.write(msg.encode())
+        if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not assign channel.')
         self.is_free = False
 
@@ -89,23 +89,24 @@ class Channel(event.EventCallback):
             raise ChannelError('Could not set channel period.')
 
     def setFrequency(self, frequency):
-        msg = message.ChannelFrequencyMessage(number=self.number)
-        msg.setFrequency(frequency)
-        self.node.driver.write(msg.encode())
-        if self.node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
+        msg = message.ChannelFrequencyMessage(self.number, frequency)
+        node = self.node
+        node.driver.write(msg.encode())
+        if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not set channel frequency.')
 
     def open(self):
         msg = message.ChannelOpenMessage(number=self.number)
-        self.node.driver.write(msg.encode())
-        ack = self.node.evm.waitForAck(msg)
-        if ack != RESPONSE_NO_ERROR:
+        node = self.node
+        node.driver.write(msg.encode())
+        if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not open channel.')
 
     def close(self):
         msg = message.ChannelCloseMessage(number=self.number)
-        self.node.driver.write(msg.encode())
-        if self.node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
+        node = self.node
+        node.driver.write(msg.encode())
+        if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not close channel.')
 
         while True:
@@ -115,8 +116,9 @@ class Channel(event.EventCallback):
 
     def unassign(self):
         msg = message.ChannelUnassignMessage(number=self.number)
-        self.node.driver.write(msg.encode())
-        if self.node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
+        node = self.node
+        node.driver.write(msg.encode())
+        if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not unassign channel.')
         self.is_free = True
 
@@ -178,8 +180,7 @@ class Node(event.EventCallback):
         if not self.running:
             raise NodeError('Could not reset ANT node (not started).')
 
-        msg = message.ChannelRequestMessage()
-        msg.setMessageID(MESSAGE_CAPABILITIES)
+        msg = message.ChannelRequestMessage(message_id=MESSAGE_CAPABILITIES)
         self.driver.write(msg.encode())
 
         caps = self.evm.waitForMessage(message.CapabilitiesMessage)
@@ -197,20 +198,18 @@ class Node(event.EventCallback):
                         caps.getAdvOptions2(),)
 
     def getCapabilities(self):
-        return (len(self.channels),
-                len(self.networks),
-                self.options,)
+        return (len(self.channels), len(self.networks), self.options)
 
     def setNetworkKey(self, number, key=None):
-        if key:
-            self.networks[number] = key
-
-        msg = message.NetworkKeyMessage()
-        msg.setNumber(number)
-        msg.setKey(self.networks[number].key)
+        networks = self.networks
+        if key is not None:
+            networks[number] = key
+        
+        network = networks[number]
+        msg = message.NetworkKeyMessage(number, network.key)
         self.driver.write(msg.encode())
         self.evm.waitForAck(msg)
-        self.networks[number].number = number
+        network.number = number
 
     def getNetworkKey(self, name):
         for netkey in self.networks:

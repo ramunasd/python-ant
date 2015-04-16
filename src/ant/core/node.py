@@ -140,8 +140,8 @@ class Channel(event.EventCallback):
 
 
 class Node(event.EventCallback):
-    # pylint: disable=abstract-class-not-used
-
+    # pylint: disable=abstract-method
+    
     def __init__(self, driver):
         self.driver = driver
         self.evm = event.EventMachine(self.driver)

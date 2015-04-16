@@ -122,15 +122,15 @@ class Message(object):
 class ChannelMessage(Message):
     def __init__(self, type_=None, payload='', number=0x00):
         super(ChannelMessage, self).__init__(type_, bytearray(1) + payload)
-        self.setChannelNumber(number)
+        self.channelNumber = number
     
-    def getChannelNumber(self):
+    @property
+    def channelNumber(self):
         return self._payload[0]
-    
-    def setChannelNumber(self, number):
+    @channelNumber.setter
+    def channelNumber(self, number):
         if (number > 0xFF) or (number < 0x00):
-            raise MessageError('Could not set channel number ' \
-                                   '(out of range).')
+            raise MessageError('Could not set channel number (out of range).')
         
         self._payload[0] = number
 

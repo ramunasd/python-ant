@@ -31,7 +31,7 @@
 MAX_ACK_QUEUE = 25
 MAX_MSG_QUEUE = 25
 
-import thread
+from threading import Lock, Thread
 import time
 
 from ant.core.constants import MESSAGE_TX_SYNC
@@ -123,11 +123,11 @@ class MsgCallback(EventCallback):
 
 
 class EventMachine(object):
-    callbacks_lock = thread.allocate_lock()
-    running_lock = thread.allocate_lock()
-    pump_lock = thread.allocate_lock()
-    ack_lock = thread.allocate_lock()
-    msg_lock = thread.allocate_lock()
+    callbacks_lock = Lock()
+    running_lock = Lock()
+    pump_lock = Lock()
+    ack_lock = Lock()
+    msg_lock = Lock()
 
     def __init__(self, driver):
         self.driver = driver
@@ -179,7 +179,7 @@ class EventMachine(object):
             if driver is not None:
                 self.driver = driver
             
-            thread.start_new_thread(EventPump, (self,))
+            Thread(target=EventPump, args=(self,)).start()
             while True:
                 with self.pump_lock:
                     if self.pump:

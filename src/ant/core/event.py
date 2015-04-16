@@ -46,7 +46,7 @@ def ProcessBuffer(buffer_):
         try:
             msg = Message.decode(buffer_)
             messages.append(msg)
-            buffer_ = buffer_[msg.getSize():]
+            buffer_ = buffer_[len(msg):]
         except MessageError as err:
             if err.internal is not Message.INCOMPLETE:
                 i, length = 1, len(buffer_)
@@ -153,7 +153,7 @@ class EventMachine(object):
         while True:
             with self.ack_lock:
                 for emsg in self.ack:
-                    if msg.getType() != emsg.getMessageID():
+                    if msg.type != emsg.getMessageID():
                         continue
                     self.ack.remove(emsg)
                     return emsg.getMessageCode()

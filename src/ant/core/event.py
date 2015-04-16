@@ -149,23 +149,23 @@ class EventMachine(object):
                 pass
 
     def waitForAck(self, msg):
+        type_, ack = msg.type, self.ack
         while True:
             with self.ack_lock:
-                for emsg in self.ack:
-                    if msg.type != emsg.messageID:
-                        continue
-                    self.ack.remove(emsg)
-                    return emsg.messageCode
+                for emsg in ack:
+                    if type_ == emsg.messageID:
+                        ack.remove(emsg)
+                        return emsg.messageCode
             time.sleep(0.002)
 
     def waitForMessage(self, class_):
+        msg = self.msg
         while True:
             with self.msg_lock:
-                for emsg in self.msg:
-                    if not isinstance(emsg, class_):
-                        continue
-                    self.msg.remove(emsg)
-                    return emsg
+                for emsg in msg:
+                    if isinstance(emsg, class_):
+                        msg.remove(emsg)
+                        return emsg
             time.sleep(0.002)
 
     def start(self, driver=None):
@@ -173,6 +173,7 @@ class EventMachine(object):
             if self.running:
                 return
             self.running = True
+            
             if driver is not None:
                 self.driver = driver
             

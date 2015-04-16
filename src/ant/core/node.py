@@ -47,11 +47,11 @@ class NetworkKey(object):
 class Channel(event.EventCallback):
     cb_lock = thread.allocate_lock()
 
-    def __init__(self, node):
+    def __init__(self, node, number=0):
         self.node = node
         self.is_free = True
         self.name = str(uuid.uuid4())
-        self.number = 0
+        self.number = number
         self.cb = []
         self.node.evm.registerCallback(self)
 
@@ -184,15 +184,11 @@ class Node(event.EventCallback):
         self.driver.write(msg.encode())
 
         caps = self.evm.waitForMessage(message.CapabilitiesMessage)
-
         self.networks = []
         for i in range(0, caps.maxNetworks):
             self.networks.append(NetworkKey())
             self.setNetworkKey(i)
-        channels = self.channels = []
-        for i in range(0, caps.maxChannels):
-            channels.append(Channel(self))
-            channels[i].number = i
+        self.channels = [ Channel(self, i) for i in xrange(0, caps.maxChannels) ]
         self.options = (caps.stdOptions, caps.advOptions, caps.advOptions2)
 
     def getCapabilities(self):

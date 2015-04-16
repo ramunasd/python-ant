@@ -48,7 +48,7 @@ class Driver(object):
         self.log = log
         self.is_open = False
         self._lock = Lock()
-
+    
     def isOpen(self):
         with self._lock:
             return self.is_open
@@ -103,7 +103,8 @@ class Driver(object):
                 self.log.logWrite(data[0:ret])
         return ret
     
-    def _dump(self, data, title):
+    @staticmethod
+    def _dump(data, title):
         if len(data) == 0:
             return
         
@@ -120,22 +121,24 @@ class Driver(object):
         print()
     
     def _open(self):
-        raise DriverError("Not Implemented")
+        raise NotImplementedError()
     
     def _close(self):
-        raise DriverError("Not Implemented")
+        raise NotImplementedError()
     
     def _read(self, count):
-        raise DriverError("Not Implemented")
+        raise NotImplementedError()
     
     def _write(self, data):
-        raise DriverError("Not Implemented")
+        raise NotImplementedError()
 
 
 class USB1Driver(Driver):
     def __init__(self, device, baud_rate=115200, log=None, debug=False):
-        Driver.__init__(self, device, log, debug)
+        super(USB1Driver, self).__init__(log, debug)
+        self.device = device
         self.baud = baud_rate
+        self._serial = None
     
     def _open(self):
         try:
@@ -166,6 +169,14 @@ class USB1Driver(Driver):
 
 
 class USB2Driver(Driver):
+    
+    def __init__(self, log=None, debug=False):
+        super(USB2Driver, self).__init__(log, debug)
+        self._ep_out = None
+        self._ep_in = None
+        self._dev = None
+        self._int = None
+    
     def _open(self):
         # Most of this is straight from the PyUSB example documentation		
         dev = usb.core.find(idVendor=0x0fcf, idProduct=0x1008)

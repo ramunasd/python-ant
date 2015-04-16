@@ -172,26 +172,29 @@ class ChannelIDMessage(ChannelMessage):
     def __init__(self, number=0x00, device_number=0x0000, device_type=0x00,
                  trans_type=0x00):
         super(ChannelIDMessage, self).__init__(payload=bytearray(4), number=number)
-        self.setDeviceNumber(device_number)
-        self.setDeviceType(device_type)
-        self.setTransmissionType(trans_type)
+        self.deviceNumber = device_number
+        self.deviceType = device_type
+        self.transmissionType = trans_type
     
-    def getDeviceNumber(self):
+    @property
+    def deviceNumber(self):
         return struct.unpack('<H', str(self._payload[1:3]))[0]
-    
-    def setDeviceNumber(self, device_number):
+    @deviceNumber.setter
+    def deviceNumber(self, device_number):
         self._payload[1:3] = struct.pack('<H', device_number)
     
-    def getDeviceType(self):
+    @property
+    def deviceType(self):
         return self._payload[3]
-    
-    def setDeviceType(self, device_type):
+    @deviceType.setter
+    def deviceType(self, device_type):
         self._payload[3] = device_type
     
-    def getTransmissionType(self):
+    @property
+    def transmissionType(self):
         return self._payload[4]
-    
-    def setTransmissionType(self, trans_type):
+    @transmissionType.setter
+    def transmissionType(self, trans_type):
         self._payload[4] = trans_type
 
 

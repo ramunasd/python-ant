@@ -67,12 +67,10 @@ class Channel(event.EventCallback):
         self.is_free = False
 
     def setID(self, dev_type, dev_num, trans_type):
-        msg = message.ChannelIDMessage(number=self.number)
-        msg.setDeviceType(dev_type)
-        msg.setDeviceNumber(dev_num)
-        msg.setTransmissionType(trans_type)
-        self.node.driver.write(msg.encode())
-        if self.node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
+        msg = message.ChannelIDMessage(self.number, dev_num, dev_type, trans_type)
+        node = self.node
+        node.driver.write(msg.encode())
+        if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not set channel ID.')
 
     def setSearchTimeout(self, timeout):

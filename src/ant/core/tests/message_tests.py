@@ -125,23 +125,23 @@ class ChannelIDMessageTest(unittest.TestCase):
     def setUp(self):
         self.message = ChannelIDMessage()
 
-    def test_get_setDeviceNumber(self):
-        self.message.setDeviceNumber(0x10FA)
-        self.assertEquals(self.message.getDeviceNumber(), 0x10FA)
+    def test_get_deviceNumber(self):
+        self.message.deviceNumber = 0x10FA
+        self.assertEquals(self.message.deviceNumber, 0x10FA)
 
-    def test_get_setDeviceType(self):
-        self.message.setDeviceType(0x10)
-        self.assertEquals(self.message.getDeviceType(), 0x10)
+    def test_get_deviceType(self):
+        self.message.deviceType = 0x10
+        self.assertEquals(self.message.deviceType, 0x10)
 
-    def test_get_setTransmissionType(self):
-        self.message.setTransmissionType(0x11)
-        self.assertEquals(self.message.getTransmissionType(), 0x11)
+    def test_get_transmissionType(self):
+        self.message.transmissionType = 0x11
+        self.assertEquals(self.message.transmissionType, 0x11)
 
     def test_payload(self):
         self.message.channelNumber = 0x01
-        self.message.setDeviceNumber(0x0302)
-        self.message.setDeviceType(0x04)
-        self.message.setTransmissionType(0x05)
+        self.message.deviceNumber = 0x0302
+        self.message.deviceType = 0x04
+        self.message.transmissionType = 0x05
         self.assertEquals(self.message.payload, '\x01\x02\x03\x04\x05')
 
 

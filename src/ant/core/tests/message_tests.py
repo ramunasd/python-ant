@@ -164,12 +164,12 @@ class ChannelSearchTimeoutMessageTest(unittest.TestCase):
         self.message = ChannelSearchTimeoutMessage()
 
     def test_get_setTimeout(self):
-        self.message.setTimeout(0x10)
-        self.assertEquals(self.message.getTimeout(), 0x10)
+        self.message.timeout = 0x10
+        self.assertEquals(self.message.timeout, 0x10)
 
     def test_payload(self):
         self.message.channelNumber = 0x01
-        self.message.setTimeout(0x02)
+        self.message.timeout = 0x02
         self.assertEquals(self.message.payload, '\x01\x02')
 
 

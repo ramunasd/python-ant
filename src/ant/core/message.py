@@ -219,12 +219,13 @@ class ChannelSearchTimeoutMessage(ChannelMessage):
     def __init__(self, number=0x00, timeout=0xFF):
         super(ChannelSearchTimeoutMessage, self).__init__(payload=bytearray(1),
                                                           number=number)
-        self.setTimeout(timeout)
+        self.timeout = timeout
     
-    def getTimeout(self):
+    @property
+    def timeout(self):
         return self._payload[1]
-    
-    def setTimeout(self, timeout):
+    @timeout.setter
+    def timeout(self, timeout):
         self._payload[1] = timeout
 
 

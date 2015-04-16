@@ -26,8 +26,9 @@
 
 import struct
 
+from ant.core import constants
+from ant.core.constants import MESSAGE_TX_SYNC
 from ant.core.exceptions import MessageError
-from ant.core.constants import *
 
 
 class MessageType(type):
@@ -139,14 +140,14 @@ class ChannelMessage(Message):
 
 # Config messages
 class ChannelUnassignMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_UNASSIGN
+    type = constants.MESSAGE_CHANNEL_UNASSIGN
     
     def __init__(self, number=0x00):
         super(ChannelUnassignMessage, self).__init__(number=number)
 
 
 class ChannelAssignMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_ASSIGN
+    type = constants.MESSAGE_CHANNEL_ASSIGN
     
     def __init__(self, number=0x00, type_=0x00, network=0x00):
         super(ChannelAssignMessage, self).__init__(payload=bytearray(2), number=number)
@@ -167,7 +168,7 @@ class ChannelAssignMessage(ChannelMessage):
 
 
 class ChannelIDMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_ID
+    type = constants.MESSAGE_CHANNEL_ID
     
     def __init__(self, number=0x00, device_number=0x0000, device_type=0x00,
                  trans_type=0x00):
@@ -196,7 +197,7 @@ class ChannelIDMessage(ChannelMessage):
 
 
 class ChannelPeriodMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_PERIOD
+    type = constants.MESSAGE_CHANNEL_PERIOD
     
     def __init__(self, number=0x00, period=8192):
         super(ChannelPeriodMessage, self).__init__(payload=bytearray(2), number=number)
@@ -210,7 +211,7 @@ class ChannelPeriodMessage(ChannelMessage):
 
 
 class ChannelSearchTimeoutMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_SEARCH_TIMEOUT
+    type = constants.MESSAGE_CHANNEL_SEARCH_TIMEOUT
     
     def __init__(self, number=0x00, timeout=0xFF):
         super(ChannelSearchTimeoutMessage, self).__init__(payload=bytearray(1),
@@ -225,7 +226,7 @@ class ChannelSearchTimeoutMessage(ChannelMessage):
 
 
 class ChannelFrequencyMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_FREQUENCY
+    type = constants.MESSAGE_CHANNEL_FREQUENCY
     
     def __init__(self, number=0x00, frequency=66):
         super(ChannelFrequencyMessage, self).__init__(payload=bytearray(1), number=number)
@@ -239,7 +240,7 @@ class ChannelFrequencyMessage(ChannelMessage):
 
 
 class ChannelTXPowerMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_TX_POWER
+    type = constants.MESSAGE_CHANNEL_TX_POWER
     
     def __init__(self, number=0x00, power=0x00):
         super(ChannelTXPowerMessage, self).__init__(payload=bytearray(1), number=number)
@@ -253,7 +254,7 @@ class ChannelTXPowerMessage(ChannelMessage):
 
 
 class NetworkKeyMessage(Message):
-    type = MESSAGE_NETWORK_KEY
+    type = constants.MESSAGE_NETWORK_KEY
     
     def __init__(self, number=0x00, key='\x00' * 8):
         super(NetworkKeyMessage, self).__init__(payload=bytearray(9))
@@ -274,7 +275,7 @@ class NetworkKeyMessage(Message):
 
 
 class TXPowerMessage(Message):
-    type = MESSAGE_TX_POWER
+    type = constants.MESSAGE_TX_POWER
     
     def __init__(self, power=0x00):
         super(TXPowerMessage, self).__init__(payload=bytearray(2))
@@ -289,30 +290,30 @@ class TXPowerMessage(Message):
 
 # Control messages
 class SystemResetMessage(Message):
-    type = MESSAGE_SYSTEM_RESET
+    type = constants.MESSAGE_SYSTEM_RESET
     
     def __init__(self):
         super(SystemResetMessage, self).__init__(payload=bytearray(1))
 
 
 class ChannelOpenMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_OPEN
+    type = constants.MESSAGE_CHANNEL_OPEN
     
     def __init__(self, number=0x00):
         super(ChannelOpenMessage, self).__init__(number=number)
 
 
 class ChannelCloseMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_CLOSE
+    type = constants.MESSAGE_CHANNEL_CLOSE
     
     def __init__(self, number=0x00):
         super(ChannelCloseMessage, self).__init__(number=number)
 
 
 class ChannelRequestMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_REQUEST
+    type = constants.MESSAGE_CHANNEL_REQUEST
     
-    def __init__(self, number=0x00, message_id=MESSAGE_CHANNEL_STATUS):
+    def __init__(self, number=0x00, message_id=constants.MESSAGE_CHANNEL_STATUS):
         super(ChannelRequestMessage, self).__init__(payload=bytearray(1), number=number)
         self.setMessageID(message_id)
 
@@ -333,21 +334,21 @@ class RequestMessage(ChannelRequestMessage):
 
 # Data messages
 class ChannelBroadcastDataMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_BROADCAST_DATA
+    type = constants.MESSAGE_CHANNEL_BROADCAST_DATA
     
     def __init__(self, number=0x00, data='\x00' * 7):
         super(ChannelBroadcastDataMessage, self).__init__(payload=data, number=number)
 
 
 class ChannelAcknowledgedDataMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_ACKNOWLEDGED_DATA
+    type = constants.MESSAGE_CHANNEL_ACKNOWLEDGED_DATA
     
     def __init__(self, number=0x00, data='\x00' * 7):
         super(ChannelAcknowledgedDataMessage, self).__init__(payload=data, number=number)
 
 
 class ChannelBurstDataMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_BURST_DATA
+    type = constants.MESSAGE_CHANNEL_BURST_DATA
     
     def __init__(self, number=0x00, data='\x00' * 7):
         super(ChannelBurstDataMessage, self).__init__(payload=data, number=number)
@@ -355,7 +356,7 @@ class ChannelBurstDataMessage(ChannelMessage):
 
 # Channel event messages
 class ChannelEventMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_EVENT
+    type = constants.MESSAGE_CHANNEL_EVENT
     
     def __init__(self, number=0x00, message_id=0x00, message_code=0x00):
         super(ChannelEventMessage, self).__init__(payload=bytearray(2), number=number)
@@ -385,7 +386,7 @@ class ChannelEventMessage(ChannelMessage):
 
 # Requested response messages
 class ChannelStatusMessage(ChannelMessage):
-    type = MESSAGE_CHANNEL_STATUS
+    type = constants.MESSAGE_CHANNEL_STATUS
     
     def __init__(self, number=0x00, status=0x00):
         super(ChannelStatusMessage, self).__init__(payload=bytearray(1), number=number)
@@ -405,7 +406,7 @@ class ChannelStatusMessage(ChannelMessage):
 
 
 class VersionMessage(Message):
-    type = MESSAGE_VERSION
+    type = constants.MESSAGE_VERSION
     
     def __init__(self, version='\x00' * 9):
         super(VersionMessage, self).__init__(payload=bytearray(9))
@@ -423,7 +424,7 @@ class VersionMessage(Message):
 
 
 class StartupMessage(Message):
-    type = MESSAGE_STARTUP
+    type = constants.MESSAGE_STARTUP
     
     def __init__(self, startupMessage=0x00):
         super(StartupMessage, self).__init__(self, payload=bytearray(1))
@@ -440,7 +441,7 @@ class StartupMessage(Message):
 
 
 class CapabilitiesMessage(Message):
-    type = MESSAGE_CAPABILITIES
+    type = constants.MESSAGE_CAPABILITIES
     def __init__(self, max_channels=0x00, max_nets=0x00, std_opts=0x00,
                  adv_opts=0x00, adv_opts2=0x00):
         super(CapabilitiesMessage, self).__init__(payload=bytearray(4))
@@ -500,7 +501,7 @@ class CapabilitiesMessage(Message):
 
 
 class SerialNumberMessage(Message):
-    type = MESSAGE_SERIAL_NUMBER
+    type = constants.MESSAGE_SERIAL_NUMBER
     
     def __init__(self, serial='\x00' * 4):
         super(SerialNumberMessage, self).__init__()

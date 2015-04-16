@@ -41,7 +41,7 @@ from ant.core.exceptions import MessageError
 
 def ProcessBuffer(buffer_):
     messages = []
-
+    
     while len(buffer_) > 0:
         try:
             msg = Message.decode(buffer_)
@@ -56,25 +56,25 @@ def ProcessBuffer(buffer_):
                 buffer_ = buffer_[i:]
             else:
                 break
-
+    
     return (buffer_, messages)
 
 
 def EventPump(evm):
     with evm.pump_lock:
         evm.pump = True
-
+    
     buffer_ = ''
     while True:
         with evm.running_lock:
             if not evm.running:
                 break
-
+        
         buffer_ += evm.driver.read(20)
         if len(buffer_) == 0:
             continue
         buffer_, messages = ProcessBuffer(buffer_)
-
+        
         with evm.callbacks_lock:
             for message in messages:
                 for callback in evm.callbacks:
@@ -82,9 +82,8 @@ def EventPump(evm):
                         callback.process(message)
                     except Exception:
                         pass
-
         sleep(0.002)
-
+    
     with evm.pump_lock:
         evm.pump = False
 
@@ -97,7 +96,7 @@ class EventCallback(object):
 class AckCallback(EventCallback):
     def __init__(self, evm):
         self.evm = evm
-
+    
     def process(self, msg):
         if isinstance(msg, ChannelEventMessage):
             evm = self.evm
@@ -111,7 +110,7 @@ class AckCallback(EventCallback):
 class MsgCallback(EventCallback):
     def __init__(self, evm):
         self.evm = evm
-
+    
     def process(self, msg):
         evm = self.evm
         with evm.msg_lock:
@@ -127,7 +126,7 @@ class EventMachine(object):
     pump_lock = Lock()
     ack_lock = Lock()
     msg_lock = Lock()
-
+    
     def __init__(self, driver):
         self.driver = driver
         self.callbacks = set()
@@ -137,18 +136,18 @@ class EventMachine(object):
         self.msg = []
         self.registerCallback(AckCallback(self))
         self.registerCallback(MsgCallback(self))
-
+    
     def registerCallback(self, callback):
         with self.callbacks_lock:
             self.callbacks.add(callback)
-
+    
     def removeCallback(self, callback):
         with self.callbacks_lock:
             try:
                 self.callbacks.remove(callback)
             except KeyError:
                 pass
-
+    
     def waitForAck(self, msg):
         type_, ack = msg.type, self.ack
         while True:
@@ -158,7 +157,7 @@ class EventMachine(object):
                         ack.remove(emsg)
                         return emsg.messageCode
             sleep(0.002)
-
+    
     def waitForMessage(self, class_):
         msg = self.msg
         while True:
@@ -168,7 +167,7 @@ class EventMachine(object):
                         msg.remove(emsg)
                         return emsg
             sleep(0.002)
-
+    
     def start(self, driver=None):
         with self.running_lock:
             if self.running:
@@ -184,13 +183,13 @@ class EventMachine(object):
                     if self.pump:
                         break
                 sleep(0.001)
-
+    
     def stop(self):
         with self.running_lock:
             if not self.running:
                 return
             self.running = False
-
+        
         while True:
             with self.pump_lock:
                 if not self.pump:

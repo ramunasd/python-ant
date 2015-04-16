@@ -203,12 +203,13 @@ class ChannelPeriodMessage(ChannelMessage):
     
     def __init__(self, number=0x00, period=8192):
         super(ChannelPeriodMessage, self).__init__(payload=bytearray(2), number=number)
-        self.setChannelPeriod(period)
+        self.channelPeriod = period
     
-    def getChannelPeriod(self):
+    @property
+    def channelPeriod(self):
         return struct.unpack('<H', str(self._payload[1:3]))[0]
-    
-    def setChannelPeriod(self, period):
+    @channelPeriod.setter
+    def channelPeriod(self, period):
         self._payload[1:3] = struct.pack('<H', period)
 
 

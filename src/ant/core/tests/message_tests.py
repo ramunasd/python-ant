@@ -149,13 +149,13 @@ class ChannelPeriodMessageTest(unittest.TestCase):
     def setUp(self):
         self.message = ChannelPeriodMessage()
 
-    def test_get_setChannelPeriod(self):
-        self.message.setChannelPeriod(0x10FA)
-        self.assertEquals(self.message.getChannelPeriod(), 0x10FA)
+    def test_get_channelPeriod(self):
+        self.message.channelPeriod = 0x10FA
+        self.assertEquals(self.message.channelPeriod, 0x10FA)
 
     def test_payload(self):
         self.message.channelNumber = 0x01
-        self.message.setChannelPeriod(0x0302)
+        self.message.channelPeriod = 0x0302
         self.assertEquals(self.message.payload, '\x01\x02\x03')
 
 

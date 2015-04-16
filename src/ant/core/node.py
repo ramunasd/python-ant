@@ -81,10 +81,10 @@ class Channel(event.EventCallback):
             raise ChannelError('Could not set channel search timeout.')
 
     def setPeriod(self, counts):
-        msg = message.ChannelPeriodMessage(number=self.number)
-        msg.setChannelPeriod(counts)
-        self.node.driver.write(msg.encode())
-        if self.node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
+        msg = message.ChannelPeriodMessage(self.number, counts)
+        node = self.node
+        node.driver.write(msg.encode())
+        if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not set channel period.')
 
     def setFrequency(self, frequency):

@@ -446,7 +446,7 @@ class StartupMessage(Message):
     type = constants.MESSAGE_STARTUP
     
     def __init__(self, startupMessage=0x00):
-        super(StartupMessage, self).__init__(self, payload=bytearray(1))
+        super(StartupMessage, self).__init__(payload=bytearray(1))
         self.startupMessage = startupMessage
     
     @property

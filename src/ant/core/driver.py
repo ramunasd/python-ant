@@ -143,7 +143,7 @@ class USB1Driver(Driver):
     def _open(self):
         try:
             dev = serial.Serial(self.device, self.baud)
-        except serial.SerialException, e:
+        except serial.SerialException as e:
             raise DriverError(str(e))
         
         if not dev.isOpen():
@@ -162,7 +162,7 @@ class USB1Driver(Driver):
         try:
             count = self._serial.write(data)
             self._serial.flush()
-        except serial.SerialTimeoutException, e:
+        except serial.SerialTimeoutException as e:
             raise DriverError(str(e))
 
         return count

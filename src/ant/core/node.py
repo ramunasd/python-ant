@@ -54,6 +54,7 @@ class Channel(event.EventCallback):
         self.number = number
         self.cb = []
         self.cb_lock = Lock()
+        
         self.node.evm.registerCallback(self)
     
     def __del__(self):
@@ -139,13 +140,11 @@ class Channel(event.EventCallback):
                         print(err)
 
 
-class Node(event.EventCallback):
-    # pylint: disable=abstract-method
+class Node(object):
     
     def __init__(self, driver):
         self.driver = driver
         self.evm = event.EventMachine(self.driver)
-        self.evm.registerCallback(self)
         self.networks = []
         self.channels = []
         self.running = False

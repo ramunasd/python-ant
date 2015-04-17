@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring, invalid-name
+# pylint: disable=missing-docstring, invalid-name, unexpected-keyword-arg
 ##############################################################################
 #
 # Copyright (c) 2011, Martín Raúl Villalba
@@ -36,7 +36,7 @@ from ant.core import message as msg
 
 class MessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = Message(type_=0x00)
+        self.message = Message(type=0x00)
 
     def test_get_payload(self):
         with self.assertRaises(MessageError):
@@ -46,17 +46,16 @@ class MessageTest(unittest.TestCase):
 
     def test_get_setType(self):
         with self.assertRaises(MessageError):
-            Message(-1)
+            Message(type=-1)
         with self.assertRaises(MessageError):
-            Message(300)
+            Message(type=300)
         self.message.type = 0x23
         self.assertEquals(self.message.type, 0x23)
 
     def test_getChecksum(self):
-        self.message = Message(type_=MESSAGE_SYSTEM_RESET, payload=bytearray(1))
+        self.message = Message(type=MESSAGE_SYSTEM_RESET)
         self.assertEquals(self.message.checksum, 0xEF)
-        self.message = Message(type_=MESSAGE_CHANNEL_ASSIGN,
-                               payload=bytearray(3))
+        self.message = Message(type=MESSAGE_CHANNEL_ASSIGN)
         self.assertEquals(self.message.checksum, 0xE5)
 
     def test_size(self):
@@ -64,14 +63,11 @@ class MessageTest(unittest.TestCase):
         self.assertEquals(len(self.message), 11)
 
     def test_encode(self):
-        self.message = Message(type_=MESSAGE_CHANNEL_ASSIGN,
-                               payload=bytearray(3))
-        self.assertEqual(self.message.encode(),
-                         b'\xA4\x03\x42\x00\x00\x00\xE5')
+        self.message = Message(type=MESSAGE_CHANNEL_ASSIGN)
+        self.assertEqual(self.message.encode(), b'\xA4\x03\x42\x00\x00\x00\xE5')
 
     def test_decode(self):
-        self.assertRaises(MessageError, Message.decode,
-                          b'\xA5\x03\x42\x00\x00\x00\xE5')
+        self.assertRaises(MessageError, Message.decode, b'\xA5\x03\x42\x00\x00\x00\xE5')
         self.assertRaises(MessageError, Message.decode,
                           b'\xA4\x14\x42' + (b'\x00' * 20) + b'\xE5')
         self.assertRaises(MessageError, Message.decode,
@@ -94,7 +90,7 @@ class MessageTest(unittest.TestCase):
 
 class ChannelMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = msg.ChannelMessage(type_=MESSAGE_SYSTEM_RESET)
+        self.message = msg.ChannelMessage(type=MESSAGE_CHANNEL_ASSIGN)
 
     def test_get_ChannelNumber(self):
         self.assertEquals(self.message.channelNumber, 0)

@@ -40,6 +40,27 @@ class MessageType(type):
         type_ = cls.type
         if type_ is not None:
             cls.TYPES[type_] = cls
+    
+    def __call__(cls, *args, **kwargs):
+        if cls.type is not None:
+            return super(MessageType, cls).__call__(*args, **kwargs)
+        
+        type_ = kwargs.get('type')
+        if type_ is None:
+            raise RuntimeError("Message' cannot be untyped")
+        del kwargs['type']
+        
+        msgType = cls.TYPES.get(type_)
+        if msgType is not None:
+            return msgType(*args, **kwargs)
+        
+        if 0x00 <= type_ <= 0xFF:
+            msg = super(MessageType, cls).__call__(*args, **kwargs)
+            msg.type = type_
+            return msg
+        else:
+            raise MessageError('Could not set type (type out of range).',
+                               internal=Message.CORRUPTED)
 
 
 class Message(object):
@@ -51,16 +72,8 @@ class Message(object):
     CORRUPTED = 'corrupted'
     MALFORMED = 'malformed'
     
-    def __init__(self, type_=None, payload=None):
-        if self.type is None:
-            if type_ is not None:
-                if (type_ > 0xFF) or (type_ < 0x00):
-                    raise MessageError('Could not set type (type out of range).',
-                                       internal=Message.CORRUPTED)
-                self.type = type_
-            else:
-                raise RuntimeError('Message cannot be untyped')
-        
+    
+    def __init__(self, payload=None):
         self._payload = None
         self.payload = payload if payload is not None else bytearray()
     
@@ -122,8 +135,8 @@ class Message(object):
 
 
 class ChannelMessage(Message):
-    def __init__(self, type_=None, payload=b'', number=0x00):
-        super(ChannelMessage, self).__init__(type_, bytearray(1) + payload)
+    def __init__(self, payload=b'', number=0x00):
+        super(ChannelMessage, self).__init__(bytearray(1) + payload)
         self.channelNumber = number
     
     @property
@@ -148,9 +161,9 @@ class ChannelUnassignMessage(ChannelMessage):
 class ChannelAssignMessage(ChannelMessage):
     type = constants.MESSAGE_CHANNEL_ASSIGN
     
-    def __init__(self, number=0x00, type_=0x00, network=0x00):
+    def __init__(self, number=0x00, channelType=0x00, network=0x00):
         super(ChannelAssignMessage, self).__init__(payload=bytearray(2), number=number)
-        self.channelType = type_
+        self.channelType = channelType
         self.networkNumber = network
     
     @property

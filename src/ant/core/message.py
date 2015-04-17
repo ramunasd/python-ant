@@ -118,10 +118,7 @@ class Message(object):
             raise MessageError('Could not decode (message is incomplete).',
                                internal=Message.INCOMPLETE)
             
-        try:
-            msg = cls.TYPES[type_]()
-        except KeyError:
-            raise MessageError('Could not decode (type "%d" unknown).' % type_)
+        msg = Message(type=type_)  # pylint: disable=unexpected-keyword-arg
         msg.payload = raw[3:length + 3]
         
         if msg.checksum != raw[length + 3]:

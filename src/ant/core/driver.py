@@ -41,7 +41,6 @@ from array import array
 
 
 class Driver(object):
-
     def __init__(self, device, log=None, debug=False):
         self.device = device
         self.debug = debug
@@ -164,7 +163,7 @@ class USB1Driver(Driver):
             self._serial.flush()
         except serial.SerialTimeoutException as e:
             raise DriverError(str(e))
-
+        
         return count
 
 

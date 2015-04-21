@@ -150,6 +150,10 @@ class Node(object):
         self.running = False
         self.options = [0x00, 0x00, 0x00]
     
+    def reset(self):
+        self.driver.write(message.SystemResetMessage().encode())
+        self.evm.waitForMessage(message.StartupMessage)
+    
     def start(self):
         if self.running:
             raise NodeError('Could not start ANT node (already started).')
@@ -182,10 +186,6 @@ class Node(object):
         self.evm.stop()
         self.running = False
         self.driver.close()
-    
-    def reset(self):
-        self.driver.write(message.SystemResetMessage().encode())
-        self.evm.waitForMessage(message.StartupMessage)
     
     def getCapabilities(self):
         return (len(self.channels), len(self.networks), self.options)

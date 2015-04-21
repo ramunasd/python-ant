@@ -32,7 +32,7 @@ from threading import Lock
 from ant.core import event, message
 from ant.core.constants import (RESPONSE_NO_ERROR, EVENT_CHANNEL_CLOSED,
                                 MESSAGE_CAPABILITIES)
-from ant.core.exceptions import ChannelError, NodeError
+from ant.core.exceptions import ChannelError, MessageError, NodeError
 from ant.core.message import ChannelMessage
 
 
@@ -160,18 +160,23 @@ class Node(object):
         
         evm = self.evm
         evm.start()
-        self.reset()
         
-        msg = message.ChannelRequestMessage(message_id=MESSAGE_CAPABILITIES)
-        driver.write(msg.encode())
-        
-        caps = evm.waitForMessage(message.CapabilitiesMessage)
-        networks = self.networks = []
-        for i in range(0, caps.maxNetworks):
-            networks.append(NetworkKey())
-            self.setNetworkKey(i)
-        self.channels = [ Channel(self, i) for i in xrange(0, caps.maxChannels) ]
-        self.options = (caps.stdOptions, caps.advOptions, caps.advOptions2)
+        try:
+            self.reset()
+            
+            msg = message.ChannelRequestMessage(message_id=MESSAGE_CAPABILITIES)
+            driver.write(msg.encode())
+            caps = evm.waitForMessage(message.CapabilitiesMessage)
+        except MessageError as err:
+            self.stop(reset=False)
+            raise NodeError(err)
+        else:
+            networks = self.networks = []
+            for i in range(0, caps.maxNetworks):
+                networks.append(NetworkKey())
+                self.setNetworkKey(i)
+            self.channels = [ Channel(self, i) for i in xrange(0, caps.maxChannels) ]
+            self.options = (caps.stdOptions, caps.advOptions, caps.advOptions2)
 
     def stop(self, reset=True):
         if not self.running:

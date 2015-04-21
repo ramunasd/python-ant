@@ -30,7 +30,7 @@
 
 from __future__ import division, absolute_import, print_function, unicode_literals
 
-from time import sleep
+from time import sleep, time
 from threading import Lock, Thread
 
 from ant.core.constants import MESSAGE_TX_SYNC
@@ -102,15 +102,17 @@ class EventMachineCallback(EventCallback):
             if len(messages) > MAX_QUEUE:
                 self.messages = messages[-MAX_QUEUE:]
     
-    def waitFor(self, foo):  # pylint: disable=blacklisted-name
+    def waitFor(self, foo, timeout=10):  # pylint: disable=blacklisted-name
         messages = self.messages
-        while True:
+        basetime = time()
+        while time() - basetime < timeout:
             with self.lock:
                 for emsg in messages:
                     if self.WAIT_UNTIL(foo, emsg):
                         messages.remove(emsg)
                         return emsg
             sleep(0.002)
+        raise MessageError("waiting message timeout")
 
 class AckCallback(EventMachineCallback):
     WAIT_UNTIL = staticmethod(lambda msg, emsg: msg.type == emsg.messageID)

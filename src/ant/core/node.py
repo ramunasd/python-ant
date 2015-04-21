@@ -154,13 +154,24 @@ class Node(object):
         if self.running:
             raise NodeError('Could not start ANT node (already started).')
         
-        if not self.driver.isOpen():
-            self.driver.open()
+        driver = self.driver
+        if not driver.isOpen():
+            driver.open()
         
         self.evm.start()
         self.reset()
         self.running = True
-        self.init()
+        
+        msg = message.ChannelRequestMessage(message_id=MESSAGE_CAPABILITIES)
+        driver.write(msg.encode())
+        
+        caps = self.evm.waitForMessage(message.CapabilitiesMessage)
+        networks = self.networks = []
+        for i in range(0, caps.maxNetworks):
+            networks.append(NetworkKey())
+            self.setNetworkKey(i)
+        self.channels = [ Channel(self, i) for i in xrange(0, caps.maxChannels) ]
+        self.options = (caps.stdOptions, caps.advOptions, caps.advOptions2)
 
     def stop(self, reset=True):
         if not self.running:
@@ -175,21 +186,6 @@ class Node(object):
     def reset(self):
         self.driver.write(message.SystemResetMessage().encode())
         self.evm.waitForMessage(message.StartupMessage)
-    
-    def init(self):
-        if not self.running:
-            raise NodeError('Could not reset ANT node (not started).')
-        
-        msg = message.ChannelRequestMessage(message_id=MESSAGE_CAPABILITIES)
-        self.driver.write(msg.encode())
-        
-        caps = self.evm.waitForMessage(message.CapabilitiesMessage)
-        self.networks = []
-        for i in range(0, caps.maxNetworks):
-            self.networks.append(NetworkKey())
-            self.setNetworkKey(i)
-        self.channels = [ Channel(self, i) for i in xrange(0, caps.maxChannels) ]
-        self.options = (caps.stdOptions, caps.advOptions, caps.advOptions2)
     
     def getCapabilities(self):
         return (len(self.channels), len(self.networks), self.options)

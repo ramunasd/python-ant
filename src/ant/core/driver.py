@@ -26,6 +26,7 @@
 
 from __future__ import division, absolute_import, print_function, unicode_literals
 
+from array import array
 from threading import Lock
 
 # USB1 driver uses a USB<->Serial bridge
@@ -36,8 +37,6 @@ import usb.util
 import usb.control
 
 from ant.core.exceptions import DriverError
-
-from array import array
 
 
 class Driver(object):
@@ -97,7 +96,7 @@ class Driver(object):
             if self.debug:
                 self._dump(data, 'WRITE')
             
-            ret = self._write(data)
+            ret = self._write(data.encode())
             if self.log:
                 self.log.logWrite(data[0:ret])
         return ret

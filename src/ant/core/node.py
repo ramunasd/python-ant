@@ -147,8 +147,9 @@ class Node(object):
         self.evm = event.EventMachine(self.driver)
         self.networks = []
         self.channels = []
-        self.running = False
         self.options = [0x00, 0x00, 0x00]
+    
+    running = property(lambda self: self.evm.running)
     
     def reset(self):
         self.driver.write(message.SystemResetMessage().encode())
@@ -164,7 +165,6 @@ class Node(object):
         
         self.evm.start()
         self.reset()
-        self.running = True
         
         msg = message.ChannelRequestMessage(message_id=MESSAGE_CAPABILITIES)
         driver.write(msg.encode())
@@ -184,7 +184,6 @@ class Node(object):
         if reset:
             self.reset()
         self.evm.stop()
-        self.running = False
         self.driver.close()
     
     def getCapabilities(self):

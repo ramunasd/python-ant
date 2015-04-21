@@ -63,9 +63,6 @@ def ProcessBuffer(buffer_):
 
 
 def EventPump(evm):
-    with evm.pump_lock:
-        evm.pump = True
-    
     buffer_ = b''
     while True:
         with evm.running_lock:
@@ -85,9 +82,6 @@ def EventPump(evm):
                     except Exception:
                         pass
         sleep(0.002)
-    
-    with evm.pump_lock:
-        evm.pump = False
 
 
 class EventCallback(object):
@@ -125,17 +119,17 @@ class MsgCallback(EventCallback):
 class EventMachine(object):
     callbacks_lock = Lock()
     running_lock = Lock()
-    pump_lock = Lock()
     ack_lock = Lock()
     msg_lock = Lock()
     
     def __init__(self, driver):
         self.driver = driver
         self.callbacks = set()
+        self.eventPump = None
         self.running = False
-        self.pump = False
         self.ack = []
         self.msg = []
+        
         self.registerCallback(AckCallback(self))
         self.registerCallback(MsgCallback(self))
     
@@ -179,21 +173,12 @@ class EventMachine(object):
             if driver is not None:
                 self.driver = driver
             
-            Thread(target=EventPump, args=(self,)).start()
-            while True:
-                with self.pump_lock:
-                    if self.pump:
-                        break
-                sleep(0.001)
+            evPump = self.eventPump = Thread(target=EventPump, args=(self,))
+            evPump.start()
     
     def stop(self):
         with self.running_lock:
             if not self.running:
                 return
             self.running = False
-        
-        while True:
-            with self.pump_lock:
-                if not self.pump:
-                    break
-            sleep(0.001)
+        self.eventPump.join()

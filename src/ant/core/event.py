@@ -37,9 +37,6 @@ from ant.core.constants import MESSAGE_TX_SYNC
 from ant.core.message import Message, ChannelEventMessage
 from ant.core.exceptions import MessageError
 
-MAX_ACK_QUEUE = 25
-MAX_MSG_QUEUE = 25
-
 
 def ProcessBuffer(buffer_):
     messages = []
@@ -89,31 +86,42 @@ class EventCallback(object):
         raise NotImplementedError()
 
 
-class AckCallback(EventCallback):
-    def __init__(self, evm):
-        self.evm = evm
+class EventMachineCallback(EventCallback):
+    MAX_QUEUE = 25
+    WAIT_UNTIL = staticmethod(lambda _,__:None)
+    
+    def __init__(self):
+        self.messages = []
+        self.lock = Lock()
+    
+    def process(self, msg):
+        with self.lock:
+            messages = self.messages
+            messages.append(msg)
+            MAX_QUEUE = self.MAX_QUEUE
+            if len(messages) > MAX_QUEUE:
+                self.messages = messages[-MAX_QUEUE:]
+    
+    def waitFor(self, foo):  # pylint: disable=blacklisted-name
+        messages = self.messages
+        while True:
+            with self.lock:
+                for emsg in messages:
+                    if self.WAIT_UNTIL(foo, emsg):
+                        messages.remove(emsg)
+                        return emsg
+            sleep(0.002)
+
+class AckCallback(EventMachineCallback):
+    WAIT_UNTIL = staticmethod(lambda msg, emsg: msg.type == emsg.messageID)
     
     def process(self, msg):
         if isinstance(msg, ChannelEventMessage):
-            evm = self.evm
-            with evm.ack_lock:
-                ack = evm.ack
-                ack.append(msg)
-                if len(ack) > MAX_ACK_QUEUE:
-                    evm.ack = ack[-MAX_ACK_QUEUE:]
+            super(AckCallback, self).process(msg)
 
 
-class MsgCallback(EventCallback):
-    def __init__(self, evm):
-        self.evm = evm
-    
-    def process(self, msg):
-        evm = self.evm
-        with evm.msg_lock:
-            emsg = evm.msg
-            emsg.append(msg)
-            if len(emsg) > MAX_MSG_QUEUE:
-                evm.msg = emsg[-MAX_MSG_QUEUE:]
+class MsgCallback(EventMachineCallback):
+    WAIT_UNTIL = staticmethod(lambda class_, emsg: isinstance(emsg, class_))
 
 
 class EventMachine(object):
@@ -122,16 +130,14 @@ class EventMachine(object):
         self.callbacks = set()
         self.eventPump = None
         self.running = False
-        self.ack = []
-        self.msg = []
         
         self.callbacks_lock = Lock()
         self.running_lock = Lock()
-        self.ack_lock = Lock()
-        self.msg_lock = Lock()
         
-        self.registerCallback(AckCallback(self))
-        self.registerCallback(MsgCallback(self))
+        self.ack = ack = AckCallback()
+        self.msg = msg = MsgCallback()
+        self.registerCallback(ack)
+        self.registerCallback(msg)
     
     def registerCallback(self, callback):
         with self.callbacks_lock:
@@ -145,24 +151,11 @@ class EventMachine(object):
                 pass
     
     def waitForAck(self, msg):
-        type_, ack = msg.type, self.ack
-        while True:
-            with self.ack_lock:
-                for emsg in ack:
-                    if type_ == emsg.messageID:
-                        ack.remove(emsg)
-                        return emsg.messageCode
-            sleep(0.002)
+        channelEventMsg = self.ack.waitFor(msg)
+        return channelEventMsg.messageCode
     
     def waitForMessage(self, class_):
-        msg = self.msg
-        while True:
-            with self.msg_lock:
-                for emsg in msg:
-                    if isinstance(emsg, class_):
-                        msg.remove(emsg)
-                        return emsg
-            sleep(0.002)
+        return self.msg.waitFor(class_)
     
     def start(self, driver=None):
         with self.running_lock:

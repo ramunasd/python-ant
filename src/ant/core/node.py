@@ -29,20 +29,17 @@ from __future__ import division, absolute_import, print_function, unicode_litera
 from uuid import uuid4
 from threading import Lock
 
+from ant.core import event, message
 from ant.core.constants import (RESPONSE_NO_ERROR, EVENT_CHANNEL_CLOSED,
                                 MESSAGE_CAPABILITIES)
 from ant.core.exceptions import ChannelError, NodeError
-from ant.core import message
-from ant.core import event
+from ant.core.message import ChannelMessage
 
 
 class NetworkKey(object):
     def __init__(self, name=None, key=b'\x00' * 8):
         self.key = key
-        if name:
-            self.name = name
-        else:
-            self.name = str(uuid4())
+        self.name = name if name is not None else str(uuid4())
         self.number = 0
 
 
@@ -55,15 +52,15 @@ class Channel(event.EventCallback):
         self.cb = []
         self.cb_lock = Lock()
         
-        self.node.evm.registerCallback(self)
+        node.evm.registerCallback(self)
     
     def __del__(self):
         self.node.evm.removeCallback(self)
     
     def assign(self, net_key, ch_type):
-        msg = message.ChannelAssignMessage(self.number, ch_type,
-                                           self.node.getNetworkKey(net_key).number)
         node = self.node
+        msg = message.ChannelAssignMessage(self.number, ch_type,
+                                           node.getNetworkKey(net_key).number)
         node.driver.write(msg.encode())
         if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not assign channel.')
@@ -131,8 +128,7 @@ class Channel(event.EventCallback):
     
     def process(self, msg):
         with self.cb_lock:
-            if isinstance(msg, message.ChannelMessage) and \
-               msg.channelNumber == self.number:
+            if isinstance(msg, ChannelMessage) and msg.channelNumber == self.number:
                 for callback in self.cb:
                     try:
                         callback.process(msg)
@@ -163,13 +159,14 @@ class Node(object):
         if not driver.isOpen():
             driver.open()
         
-        self.evm.start()
+        evm = self.evm
+        evm.start()
         self.reset()
         
         msg = message.ChannelRequestMessage(message_id=MESSAGE_CAPABILITIES)
         driver.write(msg.encode())
         
-        caps = self.evm.waitForMessage(message.CapabilitiesMessage)
+        caps = evm.waitForMessage(message.CapabilitiesMessage)
         networks = self.networks = []
         for i in range(0, caps.maxNetworks):
             networks.append(NetworkKey())

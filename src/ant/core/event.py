@@ -79,8 +79,8 @@ def EventPump(evm):
                 for callback in evm.callbacks:
                     try:
                         callback.process(message)
-                    except Exception:
-                        pass
+                    except Exception as err:  # pylint: disable=broad-except
+                        print(err)
         sleep(0.002)
 
 

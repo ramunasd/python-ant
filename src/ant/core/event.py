@@ -117,11 +117,6 @@ class MsgCallback(EventCallback):
 
 
 class EventMachine(object):
-    callbacks_lock = Lock()
-    running_lock = Lock()
-    ack_lock = Lock()
-    msg_lock = Lock()
-    
     def __init__(self, driver):
         self.driver = driver
         self.callbacks = set()
@@ -129,6 +124,11 @@ class EventMachine(object):
         self.running = False
         self.ack = []
         self.msg = []
+        
+        self.callbacks_lock = Lock()
+        self.running_lock = Lock()
+        self.ack_lock = Lock()
+        self.msg_lock = Lock()
         
         self.registerCallback(AckCallback(self))
         self.registerCallback(MsgCallback(self))

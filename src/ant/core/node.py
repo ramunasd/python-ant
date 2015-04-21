@@ -49,7 +49,7 @@ class Channel(event.EventCallback):
         self.is_free = True
         self.name = str(uuid4())
         self.number = number
-        self.cb = []
+        self.cb = set()
         self.cb_lock = Lock()
         
         node.evm.registerCallback(self)
@@ -123,8 +123,7 @@ class Channel(event.EventCallback):
     
     def registerCallback(self, callback):
         with self.cb_lock:
-            if callback not in self.cb:
-                self.cb.append(callback)
+            self.cb.add(callback)
     
     def process(self, msg):
         with self.cb_lock:

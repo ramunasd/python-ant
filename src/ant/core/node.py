@@ -31,16 +31,20 @@ from threading import Lock
 
 from ant.core import event, message
 from ant.core.constants import (RESPONSE_NO_ERROR, EVENT_CHANNEL_CLOSED,
-                                MESSAGE_CAPABILITIES)
+                                CHANNEL_TYPE_TWOWAY_RECEIVE, MESSAGE_CAPABILITIES)
 from ant.core.exceptions import ChannelError, MessageError, NodeError
 from ant.core.message import ChannelMessage
 
 
-class NetworkKey(object):
-    def __init__(self, name=None, key=b'\x00' * 8):
+class Network(object):
+    def __init__(self, key=b'\x00' * 8, name=None):
         self.key = key
-        self.name = name if name is not None else str(uuid4())
+        self.name = name
         self.number = 0
+    
+    def __str__(self):
+        name = self.name
+        return name if name is not None else self.key
 
 
 class Device(object):
@@ -53,11 +57,12 @@ class Device(object):
 class Channel(event.EventCallback):
     def __init__(self, node, number=0):
         self.node = node
-        self.is_free = True
         self.name = str(uuid4())
         self.number = number
         self.cb = set()
         self.cb_lock = Lock()
+        self.type = CHANNEL_TYPE_TWOWAY_RECEIVE
+        self.network = None
         self.device = None
         
         node.evm.registerCallback(self)
@@ -65,14 +70,14 @@ class Channel(event.EventCallback):
     def __del__(self):
         self.node.evm.removeCallback(self)
     
-    def assign(self, net_key, ch_type):
+    def assign(self, network, channelType):
         node = self.node
-        msg = message.ChannelAssignMessage(self.number, ch_type,
-                                           node.getNetworkKey(net_key).number)
+        msg = message.ChannelAssignMessage(self.number, channelType, network.number)
         node.driver.write(msg)
         if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not assign channel.')
-        self.is_free = False
+        self.type = channelType
+        self.network = network
     
     def setID(self, devType, devNum, transType):
         msg = message.ChannelIDMessage(self.number, devNum, devType, transType)
@@ -129,7 +134,7 @@ class Channel(event.EventCallback):
         response = node.evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('Could not unassign channel (0x%.2x).' % response)
-        self.is_free = True
+        self.network = None
     
     def registerCallback(self, callback):
         with self.cb_lock:
@@ -206,15 +211,9 @@ class Node(object):
         self.evm.waitForAck(msg)
         network.number = number
     
-    def getNetworkKey(self, name):
-        for netkey in self.networks:
-            if netkey is not None and netkey.name == name:
-                return netkey
-        raise NodeError('Could not find network key with the supplied name.')
-    
     def getFreeChannel(self):
         for channel in self.channels:
-            if channel.is_free:
+            if channel.network is None:
                 return channel
         raise NodeError('Could not find free channel.')
     

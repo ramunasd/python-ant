@@ -136,7 +136,6 @@ class Channel(event.EventCallback):
 
 
 class Node(object):
-    
     def __init__(self, driver):
         self.driver = driver
         self.evm = event.EventMachine(self.driver)
@@ -164,17 +163,13 @@ class Node(object):
         try:
             self.reset()
             
-            msg = message.ChannelRequestMessage(messageID=MESSAGE_CAPABILITIES)
-            driver.write(msg)
+            driver.write(message.ChannelRequestMessage(messageID=MESSAGE_CAPABILITIES))
             caps = evm.waitForMessage(message.CapabilitiesMessage)
         except MessageError as err:
             self.stop(reset=False)
             raise NodeError(err)
         else:
-            networks = self.networks = []
-            for i in range(0, caps.maxNetworks):
-                networks.append(NetworkKey())
-                self.setNetworkKey(i)
+            self.networks = [ None ] * caps.maxNetworks
             self.channels = [ Channel(self, i) for i in xrange(0, caps.maxChannels) ]
             self.options = (caps.stdOptions, caps.advOptions, caps.advOptions2)
 
@@ -203,7 +198,7 @@ class Node(object):
     
     def getNetworkKey(self, name):
         for netkey in self.networks:
-            if netkey.name == name:
+            if netkey is not None and netkey.name == name:
                 return netkey
         raise NodeError('Could not find network key with the supplied name.')
     

@@ -43,6 +43,13 @@ class NetworkKey(object):
         self.number = 0
 
 
+class Device(object):
+    def __init__(self, devNumber, devType, transmissionType):
+        self.number = devNumber
+        self.type = devType
+        self.transmissionType = transmissionType
+
+
 class Channel(event.EventCallback):
     def __init__(self, node, number=0):
         self.node = node
@@ -51,6 +58,7 @@ class Channel(event.EventCallback):
         self.number = number
         self.cb = set()
         self.cb_lock = Lock()
+        self.device = None
         
         node.evm.registerCallback(self)
     
@@ -66,12 +74,13 @@ class Channel(event.EventCallback):
             raise ChannelError('Could not assign channel.')
         self.is_free = False
     
-    def setID(self, dev_type, dev_num, trans_type):
-        msg = message.ChannelIDMessage(self.number, dev_num, dev_type, trans_type)
+    def setID(self, devType, devNum, transType):
+        msg = message.ChannelIDMessage(self.number, devNum, devType, transType)
         node = self.node
         node.driver.write(msg)
         if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
             raise ChannelError('Could not set channel ID.')
+        self.device = Device(devNum, devType, transType)
     
     def setSearchTimeout(self, timeout):
         msg = message.ChannelSearchTimeoutMessage(self.number, timeout)
@@ -117,8 +126,9 @@ class Channel(event.EventCallback):
         msg = message.ChannelUnassignMessage(number=self.number)
         node = self.node
         node.driver.write(msg)
-        if node.evm.waitForAck(msg) != RESPONSE_NO_ERROR:
-            raise ChannelError('Could not unassign channel.')
+        response = node.evm.waitForAck(msg)
+        if response != RESPONSE_NO_ERROR:
+            raise ChannelError('Could not unassign channel (0x%.2x).' % response)
         self.is_free = True
     
     def registerCallback(self, callback):
@@ -130,7 +140,7 @@ class Channel(event.EventCallback):
             if isinstance(msg, ChannelMessage) and msg.channelNumber == self.number:
                 for callback in self.cb:
                     try:
-                        callback.process(msg)
+                        callback.process(msg, self)
                     except Exception as err:  # pylint: disable=broad-except
                         print(err)
 

@@ -164,7 +164,7 @@ class Node(object):
         try:
             self.reset()
             
-            msg = message.ChannelRequestMessage(message_id=MESSAGE_CAPABILITIES)
+            msg = message.ChannelRequestMessage(messageID=MESSAGE_CAPABILITIES)
             driver.write(msg)
             caps = evm.waitForMessage(message.CapabilitiesMessage)
         except MessageError as err:

@@ -334,19 +334,19 @@ class ChannelCloseMessage(ChannelMessage):
 class ChannelRequestMessage(ChannelMessage):
     type = constants.MESSAGE_CHANNEL_REQUEST
     
-    def __init__(self, number=0x00, message_id=constants.MESSAGE_CHANNEL_STATUS):
+    def __init__(self, number=0x00, messageID=constants.MESSAGE_CHANNEL_STATUS):
         super(ChannelRequestMessage, self).__init__(payload=bytearray(1), number=number)
-        self.messageID = message_id
+        self.messageID = messageID
     
     @property
     def messageID(self):
         return self._payload[1]
     @messageID.setter
-    def messageID(self, message_id):
-        if (message_id > 0xFF) or (message_id < 0x00):
+    def messageID(self, messageID):
+        if (messageID > 0xFF) or (messageID < 0x00):
             raise MessageError('Could not set message ID (out of range).')
         
-        self._payload[1] = message_id
+        self._payload[1] = messageID
 
 
 class RequestMessage(ChannelRequestMessage):

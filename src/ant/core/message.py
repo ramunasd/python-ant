@@ -29,7 +29,7 @@ from __future__ import division, absolute_import, print_function, unicode_litera
 from struct import pack, unpack
 
 from ant.core import constants
-from ant.core.constants import MESSAGE_TX_SYNC
+from ant.core.constants import MESSAGE_TX_SYNC, RESPONSE_NO_ERROR
 from ant.core.exceptions import MessageError
 
 
@@ -129,6 +129,12 @@ class Message(object):
     
     def __len__(self):
         return len(self._payload) + 4
+    
+    def __str__(self, data=None):
+        rawstr = '<' + self.__class__.__name__
+        if data is not None:
+            rawstr += ': ' + data
+        return rawstr + '>'
 
 
 class ChannelMessage(Message):
@@ -145,6 +151,12 @@ class ChannelMessage(Message):
             raise MessageError('Could not set channel number (out of range).')
         
         self._payload[0] = number
+    
+    def __str__(self, data=None):
+        rawstr = "C(%d)" % self.channelNumber
+        if data is not None:
+            rawstr += ': ' + data
+        return super(ChannelMessage, self).__str__(data=rawstr)
 
 
 # Config messages
@@ -349,10 +361,6 @@ class ChannelRequestMessage(ChannelMessage):
         self._payload[1] = messageID
 
 
-class RequestMessage(ChannelRequestMessage):
-    pass
-
-
 # Data messages
 class ChannelBroadcastDataMessage(ChannelMessage):
     type = constants.MESSAGE_CHANNEL_BROADCAST_DATA
@@ -376,11 +384,11 @@ class ChannelBurstDataMessage(ChannelMessage):
 
 
 # Channel event messages
-class ChannelEventMessage(ChannelMessage):
+class ChannelEventResponseMessage(ChannelMessage):
     type = constants.MESSAGE_CHANNEL_EVENT
     
     def __init__(self, number=0x00, message_id=0x00, message_code=0x00):
-        super(ChannelEventMessage, self).__init__(payload=bytearray(2), number=number)
+        super(ChannelEventResponseMessage, self).__init__(payload=bytearray(2), number=number)
         self.messageID = message_id
         self.messageCode = message_code
     
@@ -403,6 +411,15 @@ class ChannelEventMessage(ChannelMessage):
             raise MessageError('Could not set message code (out of range).')
         
         self._payload[2] = message_code
+    
+    def __str__(self):  # pylint: disable=W0221
+        msgCode = self.messageCode
+        if self.messageID != 1:
+            return "<ChannelResponse: '%s' on C(%d): %s>" % (
+                        self.TYPES[self.messageID].__name__, self.channelNumber,
+                        'OK' if msgCode == RESPONSE_NO_ERROR else '0x%.2x' % msgCode)
+        else:
+            return "<ChannelEvent: C(%d): 0x%.2x>" % (self.channelNumber, msgCode)
 
 
 # Requested response messages

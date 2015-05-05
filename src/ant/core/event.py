@@ -34,7 +34,7 @@ from time import sleep, time
 from threading import Lock, Thread
 
 from ant.core.constants import MESSAGE_TX_SYNC
-from ant.core.message import Message, ChannelEventMessage
+from ant.core.message import Message, ChannelEventResponseMessage
 from ant.core.exceptions import MessageError
 
 
@@ -118,7 +118,7 @@ class AckCallback(EventMachineCallback):
     WAIT_UNTIL = staticmethod(lambda msg, emsg: msg.type == emsg.messageID)
     
     def process(self, msg):
-        if isinstance(msg, ChannelEventMessage):
+        if isinstance(msg, ChannelEventResponseMessage):
             super(AckCallback, self).process(msg)
 
 

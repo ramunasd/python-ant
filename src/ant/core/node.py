@@ -109,7 +109,7 @@ class Channel(event.EventCallback):
             raise ChannelError('Could not close channel.')
         
         while True:
-            msg = self.node.evm.waitForMessage(message.ChannelEventMessage)
+            msg = self.node.evm.waitForMessage(message.ChannelEventResponseMessage)
             if msg.messageCode == EVENT_CHANNEL_CLOSED:
                 break
     

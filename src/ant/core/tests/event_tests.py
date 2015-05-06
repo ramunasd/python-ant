@@ -23,8 +23,10 @@
 #
 ##############################################################################
 
-import unittest
+from __future__ import division, absolute_import, print_function, unicode_literals
 
-from ant.core.event import *
+#import unittest
 
-#TODO: How exactly do you properly test threaded code?
+#from ant.core.event import *
+
+# How exactly do you properly test threaded code?

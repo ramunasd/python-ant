@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring, invalid-name
 ##############################################################################
 #
 # Copyright (c) 2011, Martín Raúl Villalba
@@ -23,11 +24,14 @@
 #
 ##############################################################################
 
+from __future__ import division, absolute_import, print_function, unicode_literals
+
 LOG_LOCATION = '/tmp/python-ant.logtest.ant'
 
 import unittest
 
-from ant.core.log import *
+from ant.core.log import (LogReader, LogWriter,
+                          EVENT_OPEN, EVENT_CLOSE, EVENT_READ, EVENT_WRITE)
 
 
 class LogReaderTest(unittest.TestCase):

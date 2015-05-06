@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring, invalid-name
 ##############################################################################
 #
 # Copyright (c) 2011, Martín Raúl Villalba
@@ -23,9 +24,12 @@
 #
 ##############################################################################
 
+from __future__ import division, absolute_import, print_function, unicode_literals
+
 import unittest
 
-from ant.core.driver import *
+from ant.core.driver import Driver
+from ant.core.exceptions import DriverError
 
 
 class DummyDriver(Driver):

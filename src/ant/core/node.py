@@ -125,12 +125,13 @@ class Channel(event.EventCallback):
         msg = message.ChannelCloseMessage(number=self.number)
         node = self.node
         node.driver.write(msg)
-        response = node.evm.waitForAck(msg)
+        evm = node.evm
+        response = evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('Could not close channel (%.2x).' % response)
         
         while True:
-            msg = self.node.evm.waitForMessage(message.ChannelEventResponseMessage)
+            msg = evm.waitForMessage(message.ChannelEventResponseMessage)
             if msg.messageCode == EVENT_CHANNEL_CLOSED:
                 break
     

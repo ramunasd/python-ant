@@ -76,7 +76,7 @@ class Channel(event.EventCallback):
         node.driver.write(msg)
         response = node.evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
-            raise ChannelError('Could not assign channel (%.2x).' % response)
+            raise ChannelError('%s: could not assign (%.2x).' % (str(self), response))
         self.type = channelType
         self.network = network
     
@@ -86,7 +86,7 @@ class Channel(event.EventCallback):
         node.driver.write(msg)
         response = node.evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
-            raise ChannelError('Could not set channel ID (%.2x).' % response)
+            raise ChannelError('%s: could not set ID (%.2x).' % (str(self), response))
         self.device = Device(devNum, devType, transType)
     
     def setSearchTimeout(self, timeout):
@@ -95,7 +95,8 @@ class Channel(event.EventCallback):
         node.driver.write(msg)
         response = node.evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
-            raise ChannelError('Could not set channel search timeout (%.2x).' % response)
+            raise ChannelError('%s: could not set search timeout (%.2x).' %
+                               (str(self), response) )
     
     def setPeriod(self, counts):
         msg = message.ChannelPeriodMessage(self.number, counts)
@@ -103,7 +104,7 @@ class Channel(event.EventCallback):
         node.driver.write(msg)
         response = node.evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
-            raise ChannelError('Could not set channel period (%.2x).' % response)
+            raise ChannelError('%s: could not set period (%.2x).' % (str(self), response))
     
     def setFrequency(self, frequency):
         msg = message.ChannelFrequencyMessage(self.number, frequency)
@@ -111,7 +112,8 @@ class Channel(event.EventCallback):
         node.driver.write(msg)
         response = node.evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
-            raise ChannelError('Could not set channel frequency (%.2x).' % response)
+            raise ChannelError('%s, could not set frequency (%.2x).' %
+                               (str(self), response))
     
     def open(self):
         msg = message.ChannelOpenMessage(number=self.number)
@@ -119,7 +121,7 @@ class Channel(event.EventCallback):
         node.driver.write(msg)
         response = node.evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
-            raise ChannelError('Could not open channel (%.2x).' % response)
+            raise ChannelError('%s: could not open (%.2x).' % (str(self), response))
     
     def close(self):
         msg = message.ChannelCloseMessage(number=self.number)
@@ -128,7 +130,7 @@ class Channel(event.EventCallback):
         evm = node.evm
         response = evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
-            raise ChannelError('Could not close channel (%.2x).' % response)
+            raise ChannelError('%s: could not close (%.2x).' % (str(self), response))
         
         while True:
             msg = evm.waitForMessage(message.ChannelEventResponseMessage)
@@ -141,7 +143,7 @@ class Channel(event.EventCallback):
         node.driver.write(msg)
         response = node.evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
-            raise ChannelError('Could not unassign channel (0x%.2x).' % response)
+            raise ChannelError('%s: could not unassign (0x%.2x).' % (str(self), response))
         self.network = None
     
     def registerCallback(self, callback):
@@ -156,6 +158,13 @@ class Channel(event.EventCallback):
                         callback.process(msg, self)
                     except Exception as err:  # pylint: disable=broad-except
                         print(err)
+    
+    def __str__(self):
+        rawstr = '<channel %d'
+        device = self.device
+        if device is not None:
+            rawstr += ' (0x%.2x)' % device
+        return rawstr + '>'
 
 
 class Node(object):

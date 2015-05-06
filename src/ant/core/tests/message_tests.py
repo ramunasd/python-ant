@@ -303,7 +303,7 @@ class ChannelBurstDataMessageTest(unittest.TestCase):
 
 class ChannelEventMessageTest(unittest.TestCase):
     def setUp(self):
-        self.message = MSG.ChannelEventMessage()
+        self.message = MSG.ChannelEventResponseMessage()
 
     def test_get_messageID(self):
         msg = self.message

@@ -177,9 +177,10 @@ class Node(object):
     
     running = property(lambda self: self.evm.running)
     
-    def reset(self):
+    def reset(self, wait=True):
         self.driver.write(message.SystemResetMessage())
-        self.evm.waitForMessage(message.StartupMessage)
+        if wait:
+            self.evm.waitForMessage(message.StartupMessage)
     
     def start(self):
         if self.running:
@@ -194,23 +195,21 @@ class Node(object):
         
         try:
             self.reset()
-            
             driver.write(message.ChannelRequestMessage(messageID=MESSAGE_CAPABILITIES))
             caps = evm.waitForMessage(message.CapabilitiesMessage)
         except MessageError as err:
-            self.stop(reset=False)
+            self.stop()
             raise NodeError(err)
         else:
             self.networks = [ None ] * caps.maxNetworks
             self.channels = [ Channel(self, i) for i in xrange(0, caps.maxChannels) ]
             self.options = (caps.stdOptions, caps.advOptions, caps.advOptions2)
 
-    def stop(self, reset=True):
+    def stop(self):
         if not self.running:
             raise NodeError('Could not stop ANT node (not started).')
         
-        if reset:
-            self.reset()
+        self.reset(wait=False)
         self.evm.stop()
         self.driver.close()
     

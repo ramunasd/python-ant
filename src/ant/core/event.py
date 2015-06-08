@@ -68,6 +68,7 @@ def EventPump(evm):
         
         buffer_ += evm.driver.read(20)
         if len(buffer_) == 0:
+            sleep(0.002)
             continue
         buffer_, messages = ProcessBuffer(buffer_)
         

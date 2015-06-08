@@ -134,7 +134,8 @@ class Channel(event.EventCallback):
         
         while True:
             msg = evm.waitForMessage(message.ChannelEventResponseMessage)
-            if msg.messageCode == EVENT_CHANNEL_CLOSED:
+            if msg.channelNumber == self.number and \
+               msg.messageCode == EVENT_CHANNEL_CLOSED:
                 break
     
     def unassign(self):

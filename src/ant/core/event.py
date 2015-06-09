@@ -119,7 +119,8 @@ class AckCallback(EventMachineCallback):
     WAIT_UNTIL = staticmethod(lambda msg, emsg: msg.type == emsg.messageID)
     
     def process(self, msg):
-        if isinstance(msg, ChannelEventResponseMessage):
+        if isinstance(msg, ChannelEventResponseMessage) and \
+           msg.messageID != 1:  # response message, not event
             super(AckCallback, self).process(msg)
 
 

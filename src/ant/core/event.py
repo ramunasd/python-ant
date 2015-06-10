@@ -38,27 +38,6 @@ from ant.core.message import Message, ChannelEventResponseMessage
 from ant.core.exceptions import MessageError
 
 
-def ProcessBuffer(buffer_):
-    messages = []
-    
-    while len(buffer_) > 0:
-        try:
-            msg = Message.decode(buffer_)
-            messages.append(msg)
-            buffer_ = buffer_[len(msg):]
-        except MessageError as err:
-            if err.internal is not Message.INCOMPLETE:
-                i, length = 1, len(buffer_)
-                # move to the next SYNC byte
-                while i < length and ord(buffer_[i]) != MESSAGE_TX_SYNC:
-                    i += 1
-                buffer_ = buffer_[i:]
-            else:
-                break
-    
-    return (buffer_, messages)
-
-
 def EventPump(evm):
     buffer_ = b''
     while True:
@@ -70,7 +49,22 @@ def EventPump(evm):
         if len(buffer_) == 0:
             sleep(0.002)
             continue
-        buffer_, messages = ProcessBuffer(buffer_)
+        
+        messages = []
+        while len(buffer_) > 0:
+            try:
+                msg = Message.decode(buffer_)
+                messages.append(msg)
+                buffer_ = buffer_[len(msg):]
+            except MessageError as err:
+                if err.internal is not Message.INCOMPLETE:
+                    i, length = 1, len(buffer_)
+                    # move to the next SYNC byte
+                    while i < length and ord(buffer_[i]) != MESSAGE_TX_SYNC:
+                        i += 1
+                    buffer_ = buffer_[i:]
+                else:
+                    break
         
         with evm.callbacks_lock:
             for message in messages:

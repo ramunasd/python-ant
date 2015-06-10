@@ -64,11 +64,6 @@ class Channel(event.EventCallback):
         self.type = CHANNEL_TYPE_TWOWAY_RECEIVE
         self.network = None
         self.device = None
-        
-        node.evm.registerCallback(self)
-    
-    def __del__(self):
-        self.node.evm.removeCallback(self)
     
     def assign(self, network, channelType):
         node = self.node
@@ -122,6 +117,8 @@ class Channel(event.EventCallback):
         response = node.evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s: could not open (%.2x).' % (str(self), response))
+        
+        node.evm.registerCallback(self)
     
     def close(self):
         msg = message.ChannelCloseMessage(number=self.number)
@@ -137,6 +134,8 @@ class Channel(event.EventCallback):
             if msg.channelNumber == self.number and \
                msg.messageCode == EVENT_CHANNEL_CLOSED:
                 break
+        
+        node.evm.removeCallback(self)
     
     def unassign(self):
         msg = message.ChannelUnassignMessage(number=self.number)

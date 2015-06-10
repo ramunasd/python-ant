@@ -64,6 +64,9 @@ class Channel(event.EventCallback):
         self.type = CHANNEL_TYPE_TWOWAY_RECEIVE
         self.network = None
         self.device = None
+        self._searchTimeout = None
+        self._period = None
+        self._frequency = None
     
     def assign(self, network, channelType):
         node = self.node
@@ -84,7 +87,11 @@ class Channel(event.EventCallback):
             raise ChannelError('%s: could not set ID (%.2x).' % (str(self), response))
         self.device = Device(devNum, devType, transType)
     
-    def setSearchTimeout(self, timeout):
+    @property
+    def searchTimeout(self):
+        return self._searchTimeout
+    @searchTimeout.setter
+    def searchTimeout(self, timeout):
         msg = message.ChannelSearchTimeoutMessage(self.number, timeout)
         node = self.node
         node.driver.write(msg)
@@ -92,16 +99,26 @@ class Channel(event.EventCallback):
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s: could not set search timeout (%.2x).' %
                                (str(self), response) )
+        self._searchTimeout = timeout
     
-    def setPeriod(self, counts):
+    @property
+    def period(self):
+        return self._period
+    @period.setter
+    def period(self, counts):
         msg = message.ChannelPeriodMessage(self.number, counts)
         node = self.node
         node.driver.write(msg)
         response = node.evm.waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s: could not set period (%.2x).' % (str(self), response))
+        self._period = counts
     
-    def setFrequency(self, frequency):
+    @property
+    def frequency(self):
+        return self._frequency
+    @frequency.setter
+    def frequency(self, frequency):
         msg = message.ChannelFrequencyMessage(self.number, frequency)
         node = self.node
         node.driver.write(msg)
@@ -109,6 +126,7 @@ class Channel(event.EventCallback):
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s, could not set frequency (%.2x).' %
                                (str(self), response))
+        self._frequency = frequency
     
     def open(self):
         msg = message.ChannelOpenMessage(number=self.number)

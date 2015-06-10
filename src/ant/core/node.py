@@ -59,8 +59,8 @@ class Channel(event.EventCallback):
         self.node = node
         self.name = str(uuid4())
         self.number = number
-        self.cb = set()
-        self.cb_lock = Lock()
+        self.callbacks = set()
+        self.evmCallbackLock = Lock()
         self.type = CHANNEL_TYPE_TWOWAY_RECEIVE
         self.network = None
         self.device = None
@@ -165,13 +165,13 @@ class Channel(event.EventCallback):
         self.network = None
     
     def registerCallback(self, callback):
-        with self.cb_lock:
-            self.cb.add(callback)
+        with self.evmCallbackLock:
+            self.callbacks.add(callback)
     
     def process(self, msg):
-        with self.cb_lock:
+        with self.evmCallbackLock:
             if isinstance(msg, ChannelMessage) and msg.channelNumber == self.number:
-                for callback in self.cb:
+                for callback in self.callbacks:
                     try:
                         callback.process(msg, self)
                     except Exception as err:  # pylint: disable=broad-except

@@ -41,7 +41,7 @@ from ant.core.exceptions import MessageError
 def EventPump(evm):
     buffer_ = b''
     while True:
-        with evm.running_lock:
+        with evm.runningLock:
             if not evm.running:
                 break
         
@@ -66,7 +66,7 @@ def EventPump(evm):
                 else:
                     break
         
-        with evm.callbacks_lock:
+        with evm.evmCallbackLock:
             for message in messages:
                 for callback in evm.callbacks:
                     try:
@@ -129,8 +129,8 @@ class EventMachine(object):
         self.eventPump = None
         self.running = False
         
-        self.callbacks_lock = Lock()
-        self.running_lock = Lock()
+        self.evmCallbackLock = Lock()
+        self.runningLock = Lock()
         
         self.ack = ack = AckCallback()
         self.msg = msg = MsgCallback()
@@ -138,11 +138,11 @@ class EventMachine(object):
         self.registerCallback(msg)
     
     def registerCallback(self, callback):
-        with self.callbacks_lock:
+        with self.evmCallbackLock:
             self.callbacks.add(callback)
     
     def removeCallback(self, callback):
-        with self.callbacks_lock:
+        with self.evmCallbackLock:
             try:
                 self.callbacks.remove(callback)
             except KeyError:
@@ -156,7 +156,7 @@ class EventMachine(object):
         return self.msg.waitFor(class_)
     
     def start(self, driver=None):
-        with self.running_lock:
+        with self.runningLock:
             if self.running:
                 return
             self.running = True
@@ -168,7 +168,7 @@ class EventMachine(object):
             evPump.start()
     
     def stop(self):
-        with self.running_lock:
+        with self.runningLock:
             if not self.running:
                 return
             self.running = False

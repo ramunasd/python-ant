@@ -36,6 +36,7 @@ from threading import Lock, Thread
 from ant.core.constants import MESSAGE_TX_SYNC
 from ant.core.message import Message, ChannelEventResponseMessage
 from ant.core.exceptions import MessageError
+from usb.core import USBError
 
 
 def EventPump(evm):
@@ -45,10 +46,14 @@ def EventPump(evm):
             if not evm.running:
                 break
         
-        buffer_ += evm.driver.read(20)
-        if len(buffer_) == 0:
-            sleep(0.002)
-            continue
+        try:
+            buffer_ += evm.driver.read(20)
+        except USBError as e:
+            if e.errno == 110:  # timeout
+                sleep(0.002)
+                continue
+            else:
+                raise
         
         messages = []
         while len(buffer_) > 0:

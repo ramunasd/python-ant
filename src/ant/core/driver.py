@@ -26,7 +26,6 @@
 
 from __future__ import division, absolute_import, print_function, unicode_literals
 
-from array import array
 from threading import Lock
 
 # USB1 driver uses a USB<->Serial bridge
@@ -223,12 +222,7 @@ class USB2Driver(Driver):
         usb.util.release_interface(self._dev, self._int)
     
     def _read(self, count):
-        try:
-            arr_inp = self._ep_in.read(count)
-        except usb.core.USBError:
-            # Timeout errors seem to occasionally be expected
-            arr_inp = array(b'B')
-        return arr_inp.tostring()
+        return self._ep_in.read(count).tostring()
     
     def _write(self, data):
         return self._ep_out.write(data)

@@ -44,59 +44,57 @@ class Driver(object):
         self.device = device
         self.debug = debug
         self.log = log
-        self.is_open = False
         self._lock = Lock()
-    
-    def isOpen(self):
-        with self._lock:
-            return self.is_open
     
     def open(self):
         with self._lock:
-            if self.is_open:
+            if self._opened:
                 raise DriverError("Could not open device (already open).")
             
             self._open()
-            self.is_open = True
             if self.log:
                 self.log.logOpen()
     
+    @property
+    def opened(self):
+        with self._lock:
+            return self._opened
+    
     def close(self):
         with self._lock:
-            if not self.is_open:
+            if not self._opened:
                 raise DriverError("Could not close device (not open).")
             
             self._close()
-            self.is_open = False
             if self.log:
                 self.log.logClose()
     
     def read(self, count):
+        if count <= 0:
+            raise DriverError("Could not read from device (zero request).")
+        if not self.opened:
+            raise DriverError("Could not read from device (not open).")
+        
+        data = self._read(count)
+        
         with self._lock:
-            if not self.is_open:
-                raise DriverError("Could not read from device (not open).")
-            if count <= 0:
-                raise DriverError("Could not read from device (zero request).")
-            
-            data = self._read(count)
             if self.log:
                 self.log.logRead(data)
-            
             if self.debug:
                 self._dump(data, 'READ')
         return data
     
     def write(self, data):
+        if len(data) <= 0:
+            raise DriverError("Could not write to device (no data).")
+        if not self.opened:
+            raise DriverError("Could not write to device (not open).")
+        
+        ret = self._write(data.encode())
+        
         with self._lock:
-            if not self.is_open:
-                raise DriverError("Could not write to device (not open).")
-            if len(data) <= 0:
-                raise DriverError("Could not write to device (no data).")
-            
             if self.debug:
                 self._dump(data, 'WRITE')
-            
-            ret = self._write(data.encode())
             if self.log:
                 self.log.logWrite(data[0:ret])
         return ret
@@ -117,6 +115,10 @@ class Driver(object):
             print(b'%04X' % line, b' '.join(hex_data))
         
         print()
+    
+    @property
+    def _opened(self):
+        raise NotImplementedError()
     
     def _open(self):
         raise NotImplementedError()
@@ -149,6 +151,10 @@ class USB1Driver(Driver):
         
         self._serial = dev
         self._serial.timeout = 0.01
+    
+    @property
+    def _opened(self):
+        return self._serial is not None
     
     def _close(self):
         self._serial.close()
@@ -213,8 +219,13 @@ class USB2Driver(Driver):
         self._dev = dev
         self._int = interface_number
     
+    @property
+    def _opened(self):
+        return self._dev is not None
+    
     def _close(self):
         release_interface(self._dev, self._int)
+        self._dev = None
     
     def _read(self, count):
         return self._ep_in.read(count).tostring()

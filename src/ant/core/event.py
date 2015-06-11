@@ -50,7 +50,6 @@ def EventPump(evm):
             buffer_ += evm.driver.read(20)
         except USBError as e:
             if e.errno == 110:  # timeout
-                sleep(0.002)
                 continue
             else:
                 raise
@@ -78,7 +77,6 @@ def EventPump(evm):
                         callback.process(message)
                     except Exception as err:  # pylint: disable=broad-except
                         print(err)
-        sleep(0.002)
 
 
 class EventCallback(object):
@@ -111,7 +109,7 @@ class EventMachineCallback(EventCallback):
                     if self.WAIT_UNTIL(foo, emsg):
                         messages.remove(emsg)
                         return emsg
-            sleep(0.002)
+            sleep(0.001)
         raise MessageError("waiting message timeout")
 
 class AckCallback(EventMachineCallback):

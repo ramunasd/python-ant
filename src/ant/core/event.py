@@ -153,6 +153,7 @@ class EventMachine(object):
     
     def writeMessage(self, msg):
         self.driver.write(msg)
+        return self
     
     def waitForAck(self, msg):
         channelEventMsg = self.ack.waitFor(msg)

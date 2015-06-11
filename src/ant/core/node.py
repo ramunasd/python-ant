@@ -69,10 +69,8 @@ class Channel(event.EventCallback):
         self._frequency = None
     
     def assign(self, network, channelType):
-        evm = self.node.evm
         msg = message.ChannelAssignMessage(self.number, channelType, network.number)
-        evm.writeMessage(msg)
-        response = evm.waitForAck(msg)
+        response = self.node.evm.writeMessage(msg).waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s: could not assign (%.2x).' % (str(self), response))
         self.type = channelType
@@ -80,9 +78,7 @@ class Channel(event.EventCallback):
     
     def setID(self, devType, devNum, transType):
         msg = message.ChannelIDMessage(self.number, devNum, devType, transType)
-        evm = self.node.evm
-        evm.writeMessage(msg)
-        response = evm.waitForAck(msg)
+        response = self.node.evm.writeMessage(msg).waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s: could not set ID (%.2x).' % (str(self), response))
         self.device = Device(devNum, devType, transType)
@@ -93,9 +89,7 @@ class Channel(event.EventCallback):
     @searchTimeout.setter
     def searchTimeout(self, timeout):
         msg = message.ChannelSearchTimeoutMessage(self.number, timeout)
-        evm = self.node.evm
-        evm.writeMessage(msg)
-        response = evm.waitForAck(msg)
+        response = self.node.evm.writeMessage(msg).waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s: could not set search timeout (%.2x).' %
                                (str(self), response) )
@@ -107,9 +101,7 @@ class Channel(event.EventCallback):
     @period.setter
     def period(self, counts):
         msg = message.ChannelPeriodMessage(self.number, counts)
-        evm = self.node.evm
-        evm.writeMessage(msg)
-        response = evm.waitForAck(msg)
+        response = self.node.evm.writeMessage(msg).waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s: could not set period (%.2x).' % (str(self), response))
         self._period = counts
@@ -120,9 +112,7 @@ class Channel(event.EventCallback):
     @frequency.setter
     def frequency(self, frequency):
         msg = message.ChannelFrequencyMessage(self.number, frequency)
-        evm = self.node.evm
-        evm.writeMessage(msg)
-        response = evm.waitForAck(msg)
+        response = self.node.evm.writeMessage(msg).waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s, could not set frequency (%.2x).' %
                                (str(self), response))
@@ -131,8 +121,7 @@ class Channel(event.EventCallback):
     def open(self):
         msg = message.ChannelOpenMessage(number=self.number)
         evm = self.node.evm
-        evm.writeMessage(msg)
-        response = evm.waitForAck(msg)
+        response = evm.writeMessage(msg).waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s: could not open (%.2x).' % (str(self), response))
         
@@ -141,8 +130,7 @@ class Channel(event.EventCallback):
     def close(self):
         msg = message.ChannelCloseMessage(number=self.number)
         evm = self.node.evm
-        evm.writeMessage(msg)
-        response = evm.waitForAck(msg)
+        response = evm.writeMessage(msg).waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s: could not close (%.2x).' % (str(self), response))
         
@@ -156,9 +144,7 @@ class Channel(event.EventCallback):
     
     def unassign(self):
         msg = message.ChannelUnassignMessage(number=self.number)
-        evm = self.node.evm
-        evm.writeMessage(msg)
-        response = evm.waitForAck(msg)
+        response = self.node.evm.writeMessage(msg).waitForAck(msg)
         if response != RESPONSE_NO_ERROR:
             raise ChannelError('%s: could not unassign (0x%.2x).' % (str(self), response))
         self.network = None
@@ -208,9 +194,8 @@ class Node(object):
         
         try:
             self.reset()
-            evm.writeMessage(message.ChannelRequestMessage(
-                                                messageID=MESSAGE_CAPABILITIES))
-            caps = evm.waitForMessage(message.CapabilitiesMessage)
+            msg = message.ChannelRequestMessage(messageID=MESSAGE_CAPABILITIES)
+            caps = evm.writeMessage(msg).waitForMessage(message.CapabilitiesMessage)
         except MessageError as err:
             self.stop()
             raise NodeError(err)
@@ -236,9 +221,7 @@ class Node(object):
         
         network = networks[number]
         msg = message.NetworkKeyMessage(number, network.key)
-        evm = self.evm
-        evm.writeMessage(msg)
-        evm.waitForAck(msg)
+        self.evm.writeMessage(msg).waitForAck(msg)
         network.number = number
     
     def getFreeChannel(self):

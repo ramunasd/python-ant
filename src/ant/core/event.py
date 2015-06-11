@@ -148,6 +148,9 @@ class EventMachine(object):
             except KeyError:
                 pass
     
+    def writeMessage(self, msg):
+        self.driver.write(msg)
+    
     def waitForAck(self, msg):
         channelEventMsg = self.ack.waitFor(msg)
         return channelEventMsg.messageCode
@@ -163,6 +166,7 @@ class EventMachine(object):
             
             if driver is not None:
                 self.driver = driver
+            self.driver.open()
             
             evPump = self.eventPump = Thread(target=EventPump, args=(self,))
             evPump.start()
@@ -173,3 +177,4 @@ class EventMachine(object):
                 return
             self.running = False
         self.eventPump.join()
+        self.driver.close()

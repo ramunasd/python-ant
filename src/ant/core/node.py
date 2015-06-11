@@ -218,10 +218,14 @@ class Node(object):
         networks = self.networks
         if key is not None:
             networks[number] = key
-        
         network = networks[number]
+        
         msg = message.NetworkKeyMessage(number, network.key)
-        self.evm.writeMessage(msg).waitForAck(msg)
+        response = self.evm.writeMessage(msg).waitForAck(msg)
+        if response != RESPONSE_NO_ERROR:
+            raise NodeError("could not set network key '%d' (0x%.2x)." %
+                            (number, response))
+        
         network.number = number
     
     def getFreeChannel(self):

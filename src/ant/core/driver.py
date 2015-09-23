@@ -84,13 +84,14 @@ class Driver(object):
                 self._dump(data, 'READ')
         return data
     
-    def write(self, data):
+    def write(self, msg):
+        data = msg.encode()
         if len(data) <= 0:
             raise DriverError("Could not write to device (no data).")
         if not self.opened:
             raise DriverError("Could not write to device (not open).")
         
-        ret = self._write(data.encode())
+        ret = self._write(data)
         
         with self._lock:
             if self.debug:
@@ -109,10 +110,11 @@ class Driver(object):
         length = 8
         line = 0
         while data:
-            row = data[:length]
+            row = str(data[:length])
             data = data[length:]
             hex_data = [b'%02X' % ord(byte) for byte in row]
             print(b'%04X' % line, b' '.join(hex_data))
+            line += length
         
         print()
     
@@ -135,7 +137,7 @@ class Driver(object):
 
 class USB1Driver(Driver):
     def __init__(self, device, baud_rate=115200, log=None, debug=False):
-        super(USB1Driver, self).__init__(log, debug)
+        super(USB1Driver, self).__init__(device, log, debug)
         self.device = device
         self.baud = baud_rate
         self._serial = None

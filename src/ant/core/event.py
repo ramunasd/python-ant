@@ -47,7 +47,7 @@ def EventPump(evm):
                 break
         
         try:
-            buffer_ += evm.driver.read(20)
+            buffer_ += evm.driver.read(128)
         except USBError as e:
             if e.errno == 110:  # timeout
                 continue
